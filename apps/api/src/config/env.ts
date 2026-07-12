@@ -15,11 +15,11 @@ export const env = {
   // Database
   databaseUrl: process.env.DATABASE_URL || '',
 
-  // Redis
-  redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
+  // Redis (supports standard REDIS_URL or Upstash)
+  redisUrl: process.env.REDIS_URL || process.env.UPSTASH_REDIS_URL || 'redis://localhost:6379',
   redisHost: process.env.REDIS_HOST || 'localhost',
   redisPort: parseInt(process.env.REDIS_PORT || '6379', 10),
-  redisPassword: process.env.REDIS_PASSWORD || undefined,
+  redisPassword: process.env.REDIS_PASSWORD || process.env.UPSTASH_REDIS_REST_TOKEN || undefined,
 
   // JWT
   jwtAccessSecret: process.env.JWT_ACCESS_SECRET || 'dev-access-secret',

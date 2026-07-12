@@ -1,0 +1,40 @@
+import { Router } from 'express';
+import { healthRouter } from './health.routes.js';
+import { authRouter } from '../modules/auth/index.js';
+import { superAdminRouter } from '../modules/super-admin/index.js';
+import { organizationRouter } from '../modules/organization/index.js';
+import { userRouter } from '../modules/users/index.js';
+import { academicRouter } from '../modules/academics/index.js';
+import { studentRouter } from '../modules/students/index.js';
+import { teacherRouter } from '../modules/teachers/index.js';
+import { attendanceRouter } from '../modules/attendance/index.js';
+import { feeRouter } from '../modules/fees/index.js';
+import { examRouter } from '../modules/exams/index.js';
+import { libraryRouter } from '../modules/library/index.js';
+import { reportRouter } from '../modules/reports/index.js';
+import { notificationRouter } from '../modules/notifications/index.js';
+import { websiteRouter } from '../modules/website/index.js';
+import { homeworkRouter } from '../modules/homework/index.js';
+import { materialRouter } from '../modules/study-materials/index.js';
+
+const router = Router();
+
+router.use('/health', healthRouter);
+router.use('/auth', authRouter);
+router.use('/saas', superAdminRouter);
+router.use('/organizations', organizationRouter);
+router.use('/users', userRouter);
+router.use('/academics', academicRouter);
+router.use('/students', studentRouter);
+router.use('/teachers', teacherRouter);
+router.use('/attendance', attendanceRouter);
+router.use('/fees', feeRouter);
+router.use('/exams', examRouter);
+router.use('/library', libraryRouter);
+router.use('/reports', reportRouter);
+router.use('/notifications', notificationRouter);
+router.use('/website', websiteRouter);
+router.use('/homework', homeworkRouter);
+router.use('/study-materials', materialRouter);
+
+export { router as apiRouter };

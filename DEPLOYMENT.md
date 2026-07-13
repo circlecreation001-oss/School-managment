@@ -1,22 +1,22 @@
-# Production Deployment Guide
+﻿# Production Deployment Guide
 ## HimanshiTech Education ERP
 
 ---
 
-## ✅ Pre-Deployment Verification (All Passed)
+## âœ… Pre-Deployment Verification (All Passed)
 
 | Check | Status |
 |-------|--------|
-| Supabase PostgreSQL connected | ✅ `"database":"healthy"` |
-| Upstash Redis connected | ✅ `PING → PONG` |
-| BullMQ Workers running | ✅ 4 workers (email, sms, notification, report) |
-| Prisma generate | ✅ Client v5.22.0 |
-| Prisma db push (68 tables) | ✅ "already in sync" |
-| Database seeded | ✅ 16 roles, 128 permissions, super admin |
-| API build | ✅ 383 KB |
-| JWT secrets generated | ✅ 64-char hex |
-| Health check | ✅ `/api/v1/health` returns healthy |
-| No hardcoded localhost in prod code | ✅ All use env vars |
+| Supabase PostgreSQL connected | âœ… `"database":"healthy"` |
+| Upstash Redis connected | âœ… `PING â†’ PONG` |
+| BullMQ Workers running | âœ… 4 workers (email, sms, notification, report) |
+| Prisma generate | âœ… Client v5.22.0 |
+| Prisma db push (68 tables) | âœ… "already in sync" |
+| Database seeded | âœ… 16 roles, 128 permissions, super admin |
+| API build | âœ… 383 KB |
+| JWT secrets generated | âœ… 64-char hex |
+| Health check | âœ… `/api/v1/health` returns healthy |
+| No hardcoded localhost in prod code | âœ… All use env vars |
 
 ---
 
@@ -24,9 +24,9 @@
 
 | Setting | Value |
 |---------|-------|
-| **Root Directory** | _(leave empty — monorepo root)_ |
+| **Root Directory** | _(leave empty â€” monorepo root)_ |
 | **Build Command** | `npm install && npx prisma generate --schema=packages/database/prisma/schema.prisma && npm run build:api` |
-| **Start Command** | `node apps/api/dist/server.mjs` |
+| **Start Command** | `node apps/api/dist/server.js` |
 | **Health Check Path** | `/api/v1/health` |
 
 ### Environment Variables (Render)
@@ -70,7 +70,7 @@ NEXT_PUBLIC_API_URL=https://YOUR-RENDER-APP.onrender.com/api/v1
 
 ## Post-Deployment Steps
 
-1. Deploy backend to Render → get the URL (e.g., `https://education-erp-api.onrender.com`)
+1. Deploy backend to Render â†’ get the URL (e.g., `https://education-erp-api.onrender.com`)
 2. Set `NEXT_PUBLIC_API_URL` in Vercel to `https://education-erp-api.onrender.com/api/v1`
 3. Set `CORS_ORIGINS` in Render to your Vercel domain (e.g., `https://school-managment.vercel.app`)
 4. Deploy frontend to Vercel
@@ -89,9 +89,9 @@ NEXT_PUBLIC_API_URL=https://YOUR-RENDER-APP.onrender.com/api/v1
 ## Architecture
 
 ```
-[Vercel - Frontend]  →  [Render - API]  →  [Supabase - PostgreSQL]
+[Vercel - Frontend]  â†’  [Render - API]  â†’  [Supabase - PostgreSQL]
      Next.js 15             Express             68 tables
-                               ↓
+                               â†“
                         [Upstash - Redis]
                          Sessions + Cache
                          BullMQ Workers

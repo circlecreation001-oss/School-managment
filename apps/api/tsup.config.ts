@@ -7,9 +7,16 @@ export default defineConfig({
   outDir: 'dist',
   clean: true,
   splitting: false,
-  // Bundle all workspace packages inline so the output is self-contained
+  // Bundle workspace packages inline (they only have TS source)
   noExternal: [/@erp\/.*/],
-  // Resolve workspace package source files
+  // Keep Prisma and all native/Node packages external
+  external: [
+    '@prisma/client',
+    '@prisma/engines',
+    '.prisma/client',
+    'prisma',
+  ],
+  // Resolve workspace package source files directly
   esbuildOptions(options) {
     options.alias = {
       '@erp/database': path.resolve(__dirname, '../../packages/database/src/index.ts'),

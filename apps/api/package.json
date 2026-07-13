@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsup src/server.ts --format esm --out-dir dist --clean --no-splitting",
-    "start": "node dist/server.js",
+    "start": "node dist/server.mjs",
     "typecheck": "tsc --noEmit --skipLibCheck",
     "test": "vitest run",
     "test:watch": "vitest",

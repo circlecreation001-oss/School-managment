@@ -3,21 +3,20 @@ import path from 'path';
 
 export default defineConfig({
   entry: ['src/server.ts'],
-  format: ['esm'],
+  format: ['cjs'],
   outDir: 'dist',
   clean: true,
   splitting: false,
-  // Bundle workspace packages inline (they only have TS source)
+  // Bundle workspace packages inline (pure TS, no native deps)
   noExternal: [/@erp\/.*/],
-  // Keep Prisma and all native/Node packages external
+  // Keep Prisma external — it needs native Node.js require()
   external: [
     '@prisma/client',
-    '@prisma/engines',
     '.prisma/client',
-    'prisma',
+    '.prisma',
   ],
-  // Resolve workspace package source files directly
   esbuildOptions(options) {
+    // Resolve workspace TS source directly
     options.alias = {
       '@erp/database': path.resolve(__dirname, '../../packages/database/src/index.ts'),
       '@erp/types': path.resolve(__dirname, '../../packages/types/src/index.ts'),

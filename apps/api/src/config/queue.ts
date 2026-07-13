@@ -2,11 +2,39 @@ import { Queue, Worker, QueueEvents } from 'bullmq';
 import { env } from './env.js';
 import { logger } from './logger.js';
 
-const connection = {
-  host: env.redisHost,
-  port: env.redisPort,
-  password: env.redisPassword,
-};
+/**
+ * Parse REDIS_URL into BullMQ-compatible connection options.
+ * Supports: redis://host:port, rediss://user:pass@host:port (Upstash TLS)
+ */
+function parseRedisConnection() {
+  const url = env.redisUrl;
+
+  try {
+    const parsed = new URL(url);
+    const useTls = parsed.protocol === 'rediss:';
+
+    return {
+      host: parsed.hostname,
+      port: parseInt(parsed.port || '6379', 10),
+      password: parsed.password || undefined,
+      username: parsed.username || undefined,
+      ...(useTls ? { tls: { rejectUnauthorized: false } } : {}),
+      maxRetriesPerRequest: null, // Required by BullMQ
+    };
+  } catch {
+    // Fallback for non-URL format
+    return {
+      host: env.redisHost || 'localhost',
+      port: env.redisPort || 6379,
+      password: env.redisPassword || undefined,
+      maxRetriesPerRequest: null,
+    };
+  }
+}
+
+const connection = parseRedisConnection();
+
+logger.info({ host: connection.host, port: connection.port, tls: !!connection.tls }, 'BullMQ Redis connection configured');
 
 export function createQueue(name: string): Queue {
   const queue = new Queue(name, {
@@ -20,7 +48,7 @@ export function createQueue(name: string): Queue {
   });
 
   queue.on('error', (err) => {
-    logger.error({ err, queue: name }, 'Queue error');
+    logger.error({ err: err.message, queue: name }, 'Queue error');
   });
 
   return queue;
@@ -41,7 +69,7 @@ export function createWorker(
   });
 
   worker.on('failed', (job, err) => {
-    logger.error({ jobId: job?.id, queue: name, err }, 'Job failed');
+    logger.error({ jobId: job?.id, queue: name, err: err.message }, 'Job failed');
   });
 
   return worker;

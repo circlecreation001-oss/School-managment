@@ -1,131 +1,98 @@
-# Deployment Guide — HimanshiTech Education ERP
+# Production Deployment Guide
+## HimanshiTech Education ERP
+
+---
+
+## ✅ Pre-Deployment Verification (All Passed)
+
+| Check | Status |
+|-------|--------|
+| Supabase PostgreSQL connected | ✅ `"database":"healthy"` |
+| Upstash Redis connected | ✅ `PING → PONG` |
+| BullMQ Workers running | ✅ 4 workers (email, sms, notification, report) |
+| Prisma generate | ✅ Client v5.22.0 |
+| Prisma db push (68 tables) | ✅ "already in sync" |
+| Database seeded | ✅ 16 roles, 128 permissions, super admin |
+| API build | ✅ 383 KB |
+| JWT secrets generated | ✅ 64-char hex |
+| Health check | ✅ `/api/v1/health` returns healthy |
+| No hardcoded localhost in prod code | ✅ All use env vars |
+
+---
+
+## BACKEND (Render)
+
+| Setting | Value |
+|---------|-------|
+| **Root Directory** | _(leave empty — monorepo root)_ |
+| **Build Command** | `npm install && npx prisma generate --schema=packages/database/prisma/schema.prisma && npm run build:api` |
+| **Start Command** | `node apps/api/dist/server.mjs` |
+| **Health Check Path** | `/api/v1/health` |
+
+### Environment Variables (Render)
+
+```env
+NODE_ENV=production
+API_PORT=4000
+API_PREFIX=/api/v1
+DATABASE_URL=postgresql://postgres:shiva95kU%40123@db.auqqwdbibsxmxkegmovv.supabase.co:5432/postgres
+REDIS_URL=rediss://default:gQAAAAAAAmHxAAIgcDEwZTU5MDk5MjMxNGU0YjFmOThjYmZiMGMxMTlhNjVhYg@moved-tuna-156145.upstash.io:6379
+JWT_ACCESS_SECRET=dc5db4969c2c38f2f0efed154d614bfd7f12d8a558dd96b379b9060a0f41e496
+JWT_REFRESH_SECRET=476a1faf766d448ffef62e52bd42df5c73a6027b7a7a3fdf597677f9629b7e71
+JWT_ACCESS_EXPIRY=15m
+JWT_REFRESH_EXPIRY=7d
+CORS_ORIGINS=https://YOUR-APP.vercel.app
+LOG_LEVEL=info
+LOG_FORMAT=json
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+ENCRYPTION_KEY=aafa87dcc24a3d98fa8622729fab0c29
+```
+
+---
+
+## FRONTEND (Vercel)
+
+| Setting | Value |
+|---------|-------|
+| **Root Directory** | `apps/web` |
+| **Framework** | Next.js (auto-detected) |
+| **Build Command** | `next build` _(auto)_ |
+| **Output Directory** | `.next` _(auto)_ |
+
+### Environment Variables (Vercel)
+
+```env
+NEXT_PUBLIC_API_URL=https://YOUR-RENDER-APP.onrender.com/api/v1
+```
+
+---
+
+## Post-Deployment Steps
+
+1. Deploy backend to Render → get the URL (e.g., `https://education-erp-api.onrender.com`)
+2. Set `NEXT_PUBLIC_API_URL` in Vercel to `https://education-erp-api.onrender.com/api/v1`
+3. Set `CORS_ORIGINS` in Render to your Vercel domain (e.g., `https://school-managment.vercel.app`)
+4. Deploy frontend to Vercel
+5. Test login: `admin@educationerp.com` / `Admin@123456`
+
+---
+
+## Login Credentials
+
+| Role | Email | Password |
+|------|-------|----------|
+| Super Admin | admin@educationerp.com | Admin@123456 |
+
+---
 
 ## Architecture
+
 ```
-┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│   Frontend   │────▶│   Backend    │────▶│  Supabase    │
-│   (Vercel)   │     │(Render/Rail) │     │ (PostgreSQL) │
-│  Next.js 15  │     │ Express API  │     │  68 tables   │
-└──────────────┘     └──────┬───────┘     └──────────────┘
-                            │
-                     ┌──────▼───────┐
-                     │    Redis     │
-                     │  (Upstash)   │
-                     └──────────────┘
-```
-
----
-
-## ✅ Completed Steps
-
-- [x] Supabase PostgreSQL connected
-- [x] `prisma db push` — all 68 tables created
-- [x] Database seeded (roles, permissions, super admin)
-- [x] Prisma client generated
-- [x] `.env.example` updated for production
-- [x] API builds successfully (374 KB)
-- [x] Web builds successfully (all pages)
-
----
-
-## 📋 Deployment Checklist
-
-### 1. Database (Supabase) ✅ DONE
-- [x] Create Supabase project
-- [x] Get connection string
-- [x] Set `DATABASE_URL` in .env
-- [x] Run `npx prisma db push`
-- [x] Run seed script (`npx tsx packages/database/seed/index.ts`)
-- [x] Verify 68 tables created in Supabase dashboard
-
-### 2. Redis (Upstash — Free tier available)
-- [ ] Create account at https://upstash.com
-- [ ] Create a Redis database (select closest region)
-- [ ] Copy the connection URL (format: `rediss://default:xxx@xxx.upstash.io:6379`)
-- [ ] Set `REDIS_URL`, `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` in environment
-
-### 3. Backend (Render or Railway)
-- [ ] Create a new **Web Service** on Render (or Railway)
-- [ ] Connect GitHub repo: `circlecreation001-oss/School-managment`
-- [ ] Set build command: `npm install && npm run db:generate && npm run build:api`
-- [ ] Set start command: `node apps/api/dist/server.mjs`
-- [ ] Set root directory: (leave empty — monorepo root)
-- [ ] Add environment variables:
-  ```
-  NODE_ENV=production
-  DATABASE_URL=postgresql://postgres:xxx@db.xxx.supabase.co:5432/postgres
-  REDIS_URL=rediss://default:xxx@xxx.upstash.io:6379
-  REDIS_HOST=xxx.upstash.io
-  REDIS_PORT=6379
-  REDIS_PASSWORD=xxx
-  JWT_ACCESS_SECRET=(generate: openssl rand -hex 32)
-  JWT_REFRESH_SECRET=(generate: openssl rand -hex 32)
-  JWT_ACCESS_EXPIRY=15m
-  JWT_REFRESH_EXPIRY=7d
-  API_PORT=4000
-  API_PREFIX=/api/v1
-  CORS_ORIGINS=https://your-app.vercel.app
-  LOG_LEVEL=info
-  LOG_FORMAT=json
-  ENCRYPTION_KEY=(generate: openssl rand -hex 16)
-  ```
-- [ ] Deploy and verify health check: `GET /api/v1/health`
-
-### 4. Frontend (Vercel)
-- [ ] Import GitHub repo to Vercel
-- [ ] Set **Root Directory**: `apps/web`
-- [ ] Framework Preset: **Next.js**
-- [ ] Build Command: `next build` (auto-detected)
-- [ ] Add environment variable:
-  ```
-  NEXT_PUBLIC_API_URL=https://your-backend.onrender.com/api/v1
-  ```
-- [ ] Deploy
-- [ ] Verify: Login page loads, API calls work
-
-### 5. Post-Deployment Verification
-- [ ] `GET /api/v1/health` returns `{"status":"healthy"}`
-- [ ] Login works: `admin@educationerp.com` / `Admin@123456`
-- [ ] `/auth/me` returns user with 128 permissions
-- [ ] Frontend pages load correctly
-- [ ] Role-based redirect works
-
----
-
-## 🔑 Credentials
-
-| Item | Value |
-|------|-------|
-| Super Admin Email | admin@educationerp.com |
-| Super Admin Password | Admin@123456 |
-| Supabase Project | db.auqqwdbibsxmxkegmovv.supabase.co |
-
----
-
-## ⚠️ Remaining Manual Steps
-
-1. **Get a Redis provider** (Upstash free tier: 10K commands/day)
-2. **Generate JWT secrets** (run: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`)
-3. **Update CORS_ORIGINS** with your actual Vercel domain after deployment
-4. **Update `NEXT_PUBLIC_API_URL`** in Vercel with your actual Render/Railway URL
-
----
-
-## 🚀 Quick Deploy Commands
-
-```bash
-# Generate secrets
-node -e "console.log('JWT_ACCESS_SECRET=' + require('crypto').randomBytes(32).toString('hex'))"
-node -e "console.log('JWT_REFRESH_SECRET=' + require('crypto').randomBytes(32).toString('hex'))"
-node -e "console.log('ENCRYPTION_KEY=' + require('crypto').randomBytes(16).toString('hex'))"
-
-# Verify database
-npx prisma db push --schema=packages/database/prisma/schema.prisma
-
-# Seed (only run once!)
-npx tsx packages/database/seed/index.ts
-
-# Build
-npm run build:api
-npm run build:web
+[Vercel - Frontend]  →  [Render - API]  →  [Supabase - PostgreSQL]
+     Next.js 15             Express             68 tables
+                               ↓
+                        [Upstash - Redis]
+                         Sessions + Cache
+                         BullMQ Workers
 ```

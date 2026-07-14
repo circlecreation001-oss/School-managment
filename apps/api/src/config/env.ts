@@ -1,22 +1,31 @@
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Load .env file - try multiple paths for monorepo compatibility
-// In production (Render/Railway), env vars are injected by the platform — dotenv is a no-op
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
-dotenv.config({ path: path.resolve(process.cwd(), '../../.env') });
+// Load .env file (development only — Render injects env vars directly)
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+  dotenv.config({ path: path.resolve(process.cwd(), '../../.env') });
+}
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-// Resolve Redis URL — NO localhost fallback in production
-function resolveRedisUrl(): string {
-  const url = process.env.REDIS_URL || process.env.UPSTASH_REDIS_URL;
-  if (url) return url;
-  if (isProduction) {
-    console.error('[FATAL] REDIS_URL is not set in production environment');
+// ─── Startup Logs ───
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('DATABASE_URL loaded:', !!process.env.DATABASE_URL);
+console.log('REDIS_URL loaded:', !!process.env.REDIS_URL);
+console.log('JWT_ACCESS_SECRET loaded:', !!process.env.JWT_ACCESS_SECRET);
+console.log('JWT_REFRESH_SECRET loaded:', !!process.env.JWT_REFRESH_SECRET);
+console.log('ENCRYPTION_KEY loaded:', !!process.env.ENCRYPTION_KEY);
+
+// ─── Production Validation ───
+if (isProduction) {
+  const required = ['DATABASE_URL', 'REDIS_URL', 'JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET', 'ENCRYPTION_KEY'];
+  const missing = required.filter((key) => !process.env[key]);
+  if (missing.length > 0) {
+    console.error(`[FATAL] Missing required environment variables: ${missing.join(', ')}`);
+    console.error('[FATAL] Server cannot start without these variables in production.');
     process.exit(1);
   }
-  return 'redis://localhost:6379';
 }
 
 export const env = {
@@ -28,14 +37,14 @@ export const env = {
   apiPort: parseInt(process.env.API_PORT || '4000', 10),
   apiPrefix: process.env.API_PREFIX || '/api/v1',
 
-  // Database
+  // Database — use DATABASE_URL directly, no localhost fallback in production
   databaseUrl: process.env.DATABASE_URL || '',
 
-  // Redis
-  redisUrl: resolveRedisUrl(),
+  // Redis — use REDIS_URL directly, no localhost fallback in production
+  redisUrl: process.env.REDIS_URL || (isProduction ? '' : 'redis://localhost:6379'),
   redisHost: process.env.REDIS_HOST || (isProduction ? '' : 'localhost'),
   redisPort: parseInt(process.env.REDIS_PORT || '6379', 10),
-  redisPassword: process.env.REDIS_PASSWORD || process.env.UPSTASH_REDIS_REST_TOKEN || undefined,
+  redisPassword: process.env.REDIS_PASSWORD || undefined,
 
   // JWT
   jwtAccessSecret: process.env.JWT_ACCESS_SECRET || (isProduction ? '' : 'dev-access-secret'),
@@ -76,26 +85,10 @@ export const env = {
   isDevelopment() {
     return this.nodeEnv === 'development';
   },
-
   isProduction() {
     return this.nodeEnv === 'production';
   },
-
   isTest() {
     return this.nodeEnv === 'test';
   },
 } as const;
-
-// Startup environment validation log
-console.log(`[env] NODE_ENV=${env.nodeEnv}`);
-console.log(`[env] REDIS_URL loaded: ${process.env.REDIS_URL ? 'yes' : 'NO'}`);
-console.log(`[env] DATABASE_URL loaded: ${process.env.DATABASE_URL ? 'yes' : 'NO'}`);
-console.log(`[env] JWT_ACCESS_SECRET loaded: ${process.env.JWT_ACCESS_SECRET ? 'yes' : 'NO'}`);
-if (isProduction && !process.env.DATABASE_URL) {
-  console.error('[FATAL] DATABASE_URL is not set in production environment');
-  process.exit(1);
-}
-if (isProduction && !process.env.JWT_ACCESS_SECRET) {
-  console.error('[FATAL] JWT_ACCESS_SECRET is not set in production environment');
-  process.exit(1);
-}

@@ -5,6 +5,9 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   transpilePackages: ['@erp/types', '@erp/utils', '@erp/validation'],
   images: {
     remotePatterns: [

@@ -17,7 +17,7 @@
     "db:push": "prisma db push --schema=packages/database/prisma/schema.prisma",
     "db:seed": "ts-node packages/database/seed/index.ts",
     "db:studio": "prisma studio --schema=packages/database/prisma/schema.prisma",
-    "prepare": "husky",
+    "prepare": "husky || true",
     "clean": "rimraf node_modules apps/*/node_modules packages/*/node_modules"
   },
   "workspaces": [

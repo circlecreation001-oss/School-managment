@@ -452,9 +452,12 @@ export class AuthService {
   // ─── PRIVATE HELPERS ───
 
   private generateAccessToken(payload: TokenPayload): string {
-    return jwt.sign(payload, env.jwtAccessSecret, {
-      expiresIn: env.jwtAccessExpiry,
-    });
+    const token = jwt.sign(
+      { ...payload } as jwt.JwtPayload,
+      env.jwtAccessSecret,
+      { expiresIn: env.jwtAccessExpiry } as jwt.SignOptions,
+    );
+    return token;
   }
 
   private parseExpiry(expiry: string): number {
@@ -476,7 +479,7 @@ export class AuthService {
     if (attempts >= AUTH_CONSTANTS.MAX_LOGIN_ATTEMPTS) {
       await redis.setex(lockKey, AUTH_CONSTANTS.LOCKOUT_DURATION_MINUTES * 60, '1');
       await redis.del(attemptsKey);
-      logger.warn({ tenantId, email }, 'Account locked due to too many failed attempts');
+      logger.warn({ tenantId, identifier }, 'Account locked due to too many failed attempts');
     }
   }
 

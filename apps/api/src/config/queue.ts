@@ -6,23 +6,36 @@ import { logger } from './logger.js';
  * Parse REDIS_URL into BullMQ-compatible connection options.
  * Supports: redis://host:port, rediss://user:pass@host:port (Upstash TLS)
  */
-function parseRedisConnection() {
+interface RedisConnectionOptions {
+  host: string;
+  port: number;
+  password: string | undefined;
+  username?: string | undefined;
+  tls?: { rejectUnauthorized: boolean };
+  maxRetriesPerRequest: null;
+}
+
+function parseRedisConnection(): RedisConnectionOptions {
   const url = env.redisUrl;
 
   try {
     const parsed = new URL(url);
     const useTls = parsed.protocol === 'rediss:';
 
-    return {
+    const opts: RedisConnectionOptions = {
       host: parsed.hostname,
       port: parseInt(parsed.port || '6379', 10),
       password: parsed.password || undefined,
       username: parsed.username || undefined,
-      ...(useTls ? { tls: { rejectUnauthorized: false } } : {}),
-      maxRetriesPerRequest: null, // Required by BullMQ
+      maxRetriesPerRequest: null,
     };
+
+    if (useTls) {
+      opts.tls = { rejectUnauthorized: false };
+    }
+
+    return opts;
   } catch {
-    // Fallback for non-URL format
     return {
       host: env.redisHost || 'localhost',
       port: env.redisPort || 6379,

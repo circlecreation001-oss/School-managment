@@ -232,16 +232,16 @@ export class AuthRepository {
     action: string;
     ipAddress?: string;
     userAgent?: string;
-    metadata?: Record<string, unknown>;
+    metadata?: any;
   }) {
-    return prisma.auditLog.create({ data });
+    return prisma.auditLog.create({ data: data as any });
   }
 
   // ─── Password Reset Tokens (stored in Redis) ───
   // These are handled via Redis in the service layer
 
   // ─── Role & Permissions ───
-  async getUserRoles(userId: string) {
+  async getUserRoles(userId: string): Promise<{ roles: string[]; permissions: string[] }> {
     const userRoles = await prisma.userRole.findMany({
       where: { userId },
       include: {
@@ -255,8 +255,8 @@ export class AuthRepository {
       },
     });
 
-    const roles = userRoles.map((ur) => ur.role.code);
-    const permissions = [
+    const roles: string[] = userRoles.map((ur) => ur.role.code);
+    const permissions: string[] = [
       ...new Set(
         userRoles.flatMap((ur) =>
           ur.role.rolePermissions.map((rp) => rp.permission.code),

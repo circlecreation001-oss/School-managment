@@ -1,11 +1,11 @@
-import { prisma } from '@erp/database';
+﻿import { prisma } from '@erp/database';
 import type { Prisma } from '@erp/database';
 
 export class StudentRepository {
   async list(tenantId: string, branchId: string, params: {
-    page: number; limit: number; search?: string; classId?: string;
+    page?: number; limit?: number; search?: string; classId?: string;
     sectionId?: string; status?: string; gender?: string;
-    sortBy: string; sortOrder: 'asc' | 'desc';
+    sortBy?: string; sortOrder?: 'asc' | 'desc';
   }) {
     const where: Prisma.StudentWhereInput = { tenantId, branchId, deletedAt: null };
     if (params.classId) where.classId = params.classId;
@@ -30,8 +30,8 @@ export class StudentRepository {
           section: { select: { id: true, name: true } },
           parentLinks: { include: { parent: { select: { firstName: true, lastName: true, phone: true, relation: true } } } },
         },
-        skip: (params.page - 1) * params.limit,
-        take: params.limit,
+        skip: ((params.page || 1) - 1) * (params.limit || 20),
+        take: params.limit || 20,
         orderBy: { [params.sortBy]: params.sortOrder },
       }),
       prisma.student.count({ where }),
@@ -57,11 +57,11 @@ export class StudentRepository {
     return prisma.student.findUnique({ where: { tenantId_admissionNumber: { tenantId, admissionNumber } } });
   }
 
-  async create(data: Prisma.StudentUncheckedCreateInput) {
+  async create(data: any /* Prisma.StudentUncheckedCreateInput */) {
     return prisma.student.create({ data, include: { class: { select: { name: true } }, section: { select: { name: true } } } });
   }
 
-  async update(id: string, data: Prisma.StudentUpdateInput) {
+  async update(id: string, data: any /* Prisma.StudentUpdateInput */) {
     return prisma.student.update({ where: { id }, data });
   }
 
@@ -69,8 +69,8 @@ export class StudentRepository {
     return prisma.student.update({ where: { id }, data: { deletedAt: new Date(), status: 'archived' } });
   }
 
-  // ─── Parents ───
-  async createParent(data: Prisma.ParentUncheckedCreateInput) {
+  // â”€â”€â”€ Parents â”€â”€â”€
+  async createParent(data: any /* Prisma.ParentUncheckedCreateInput */) {
     return prisma.parent.create({ data });
   }
   async linkParentToStudent(parentId: string, studentId: string, relation: string, isPrimary: boolean) {
@@ -90,8 +90,8 @@ export class StudentRepository {
     return prisma.parentStudent.deleteMany({ where: { parentId, studentId } });
   }
 
-  // ─── Documents ───
-  async addDocument(data: Prisma.StudentDocumentUncheckedCreateInput) {
+  // â”€â”€â”€ Documents â”€â”€â”€
+  async addDocument(data: any /* Prisma.StudentDocumentUncheckedCreateInput */) {
     return prisma.studentDocument.create({ data });
   }
   async getDocuments(studentId: string) {
@@ -104,7 +104,7 @@ export class StudentRepository {
     return prisma.studentDocument.update({ where: { id }, data: { isVerified: true, verifiedBy, verifiedAt: new Date() } });
   }
 
-  // ─── Promotion ───
+  // â”€â”€â”€ Promotion â”€â”€â”€
   async promoteStudents(studentIds: string[], data: { classId: string; sectionId?: string; academicSessionId: string }) {
     return prisma.student.updateMany({
       where: { id: { in: studentIds } },
@@ -112,20 +112,20 @@ export class StudentRepository {
     });
   }
 
-  // ─── Transfer ───
+  // â”€â”€â”€ Transfer â”€â”€â”€
   async transferStudent(id: string) {
     return prisma.student.update({ where: { id }, data: { status: 'transferred' } });
   }
 
-  // ─── Certificates ───
-  async addCertificate(data: Prisma.CertificateUncheckedCreateInput) {
+  // â”€â”€â”€ Certificates â”€â”€â”€
+  async addCertificate(data: any /* Prisma.CertificateUncheckedCreateInput */) {
     return prisma.certificate.create({ data });
   }
   async getCertificates(studentId: string) {
     return prisma.certificate.findMany({ where: { studentId }, orderBy: { createdAt: 'desc' } });
   }
 
-  // ─── Stats ───
+  // â”€â”€â”€ Stats â”€â”€â”€
   async countByClass(tenantId: string, branchId: string) {
     return prisma.student.groupBy({
       by: ['classId'],
@@ -134,7 +134,7 @@ export class StudentRepository {
     });
   }
 
-  // ─── Bulk ───
+  // â”€â”€â”€ Bulk â”€â”€â”€
   async createMany(students: Prisma.StudentCreateManyInput[]) {
     return prisma.student.createMany({ data: students, skipDuplicates: true });
   }
@@ -154,7 +154,7 @@ export class StudentRepository {
     });
   }
 
-  // ─── Generate admission number ───
+  // â”€â”€â”€ Generate admission number â”€â”€â”€
   async getNextAdmissionNumber(tenantId: string): Promise<string> {
     const count = await prisma.student.count({ where: { tenantId } });
     const year = new Date().getFullYear().toString().slice(-2);

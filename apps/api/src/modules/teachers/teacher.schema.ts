@@ -1,4 +1,4 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 
 export const createTeacherSchema = z.object({
   firstName: z.string().min(1).max(100).trim(),
@@ -98,4 +98,4 @@ export type AssignSubjectsInput = z.infer<typeof assignSubjectsSchema>;
 export type AssignClassesInput = z.infer<typeof assignClassesSchema>;
 export type UpdateSalaryInput = z.infer<typeof updateSalarySchema>;
 export type UploadDocumentInput = z.infer<typeof uploadDocumentSchema>;
-export type TeacherListQuery = z.infer<typeof teacherListQuerySchema>;
+export type TeacherListQuery = z.output<typeof teacherListQuerySchema>;

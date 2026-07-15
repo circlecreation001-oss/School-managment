@@ -1,4 +1,4 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 
 export const createMaterialSchema = z.object({
   title: z.string().min(1).max(300).trim(),
@@ -28,4 +28,4 @@ export const materialListQuerySchema = z.object({
 
 export type CreateMaterialInput = z.infer<typeof createMaterialSchema>;
 export type UpdateMaterialInput = z.infer<typeof updateMaterialSchema>;
-export type MaterialListQuery = z.infer<typeof materialListQuerySchema>;
+export type MaterialListQuery = z.output<typeof materialListQuerySchema>;

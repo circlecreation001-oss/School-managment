@@ -1,8 +1,8 @@
-import { prisma } from '@erp/database';
+﻿import { prisma } from '@erp/database';
 import type { Prisma } from '@erp/database';
 
 export class SuperAdminRepository {
-  // ─── Dashboard Stats ───
+  // â”€â”€â”€ Dashboard Stats â”€â”€â”€
   async getDashboardStats() {
     const [
       totalTenants,
@@ -55,9 +55,9 @@ export class SuperAdminRepository {
     });
   }
 
-  // ─── Tenants ───
+  // â”€â”€â”€ Tenants â”€â”€â”€
   async listTenants(params: {
-    page: number; limit: number; search?: string;
+    page?: number; limit?: number; search?: string;
     status?: string; sortBy?: string; sortOrder?: 'asc' | 'desc';
   }) {
     const where: Prisma.TenantWhereInput = { deletedAt: null };
@@ -74,8 +74,8 @@ export class SuperAdminRepository {
       prisma.tenant.findMany({
         where,
         include: { settings: true, _count: { select: { users: true, institutions: true } } },
-        skip: (params.page - 1) * params.limit,
-        take: params.limit,
+        skip: ((params.page || 1) - 1) * (params.limit || 20),
+        take: params.limit || 20,
         orderBy: { [params.sortBy || 'createdAt']: params.sortOrder || 'desc' },
       }),
       prisma.tenant.count({ where }),
@@ -115,7 +115,7 @@ export class SuperAdminRepository {
     });
   }
 
-  async updateTenant(id: string, data: Prisma.TenantUpdateInput) {
+  async updateTenant(id: string, data: any /* Prisma.TenantUpdateInput */) {
     return prisma.tenant.update({ where: { id }, data, include: { settings: true } });
   }
 
@@ -126,7 +126,7 @@ export class SuperAdminRepository {
     });
   }
 
-  async updateTenantBranding(tenantId: string, data: Prisma.TenantSettingsUpdateInput) {
+  async updateTenantBranding(tenantId: string, data: any /* Prisma.TenantSettingsUpdateInput */) {
     return prisma.tenantSettings.update({ where: { tenantId }, data });
   }
 
@@ -136,9 +136,9 @@ export class SuperAdminRepository {
     return excludeId ? existing.id === excludeId : false;
   }
 
-  // ─── Users ───
+  // â”€â”€â”€ Users â”€â”€â”€
   async listPlatformUsers(params: {
-    page: number; limit: number; search?: string;
+    page?: number; limit?: number; search?: string;
     status?: string; tenantId?: string; sortBy?: string; sortOrder?: 'asc' | 'desc';
   }) {
     const where: Prisma.UserWhereInput = { deletedAt: null };
@@ -161,8 +161,8 @@ export class SuperAdminRepository {
           createdAt: true, tenant: { select: { name: true, slug: true } },
           userRoles: { include: { role: { select: { name: true, code: true } } } },
         },
-        skip: (params.page - 1) * params.limit,
-        take: params.limit,
+        skip: ((params.page || 1) - 1) * (params.limit || 20),
+        take: params.limit || 20,
         orderBy: { [params.sortBy || 'createdAt']: params.sortOrder || 'desc' },
       }),
       prisma.user.count({ where }),
@@ -182,9 +182,9 @@ export class SuperAdminRepository {
     });
   }
 
-  // ─── Audit Logs ───
+  // â”€â”€â”€ Audit Logs â”€â”€â”€
   async listAuditLogs(params: {
-    page: number; limit: number; tenantId?: string;
+    page?: number; limit?: number; tenantId?: string;
     action?: string; entityType?: string;
     startDate?: Date; endDate?: Date;
   }) {
@@ -202,8 +202,8 @@ export class SuperAdminRepository {
       prisma.auditLog.findMany({
         where,
         include: { actor: { select: { firstName: true, lastName: true, email: true } } },
-        skip: (params.page - 1) * params.limit,
-        take: params.limit,
+        skip: ((params.page || 1) - 1) * (params.limit || 20),
+        take: params.limit || 20,
         orderBy: { createdAt: 'desc' },
       }),
       prisma.auditLog.count({ where }),
@@ -212,7 +212,7 @@ export class SuperAdminRepository {
     return { data, total };
   }
 
-  // ─── Feature Flags ───
+  // â”€â”€â”€ Feature Flags â”€â”€â”€
   async getTenantFeatures(tenantId: string) {
     return prisma.featureFlag.findMany({ where: { tenantId } });
   }

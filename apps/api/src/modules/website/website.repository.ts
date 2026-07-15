@@ -1,8 +1,8 @@
-import { prisma } from '@erp/database';
+﻿import { prisma } from '@erp/database';
 import type { Prisma } from '@erp/database';
 
 export class WebsiteRepository {
-  // ─── Pages ───
+  // â”€â”€â”€ Pages â”€â”€â”€
   async listPages(tenantId: string, pageType?: string, isPublished?: boolean) {
     const where: Prisma.WebsitePageWhereInput = { tenantId, deletedAt: null };
     if (pageType) where.pageType = pageType;
@@ -18,11 +18,11 @@ export class WebsiteRepository {
     return prisma.websitePage.findUnique({ where: { id } });
   }
 
-  async createPage(data: Prisma.WebsitePageUncheckedCreateInput) {
+  async createPage(data: any /* Prisma.WebsitePageUncheckedCreateInput */) {
     return prisma.websitePage.create({ data });
   }
 
-  async updatePage(id: string, data: Prisma.WebsitePageUpdateInput) {
+  async updatePage(id: string, data: any /* Prisma.WebsitePageUpdateInput */) {
     return prisma.websitePage.update({ where: { id }, data });
   }
 
@@ -30,15 +30,15 @@ export class WebsiteRepository {
     return prisma.websitePage.update({ where: { id }, data: { deletedAt: new Date() } });
   }
 
-  // ─── Blog ───
-  async listBlogPosts(tenantId: string, params: { page: number; limit: number; category?: string; isPublished?: boolean }) {
+  // â”€â”€â”€ Blog â”€â”€â”€
+  async listBlogPosts(tenantId: string, params: { page?: number; limit?: number; category?: string; isPublished?: boolean }) {
     const where: Prisma.BlogPostWhereInput = { tenantId, deletedAt: null };
     if (params.category) where.category = params.category;
     if (params.isPublished !== undefined) where.isPublished = params.isPublished;
 
     const [data, total] = await Promise.all([
       prisma.blogPost.findMany({
-        where, skip: (params.page - 1) * params.limit, take: params.limit,
+        where, skip: ((params.page || 1) - 1) * (params.limit || 20), take: params.limit || 20,
         orderBy: { publishedAt: 'desc' },
       }),
       prisma.blogPost.count({ where }),
@@ -52,11 +52,11 @@ export class WebsiteRepository {
 
   async getBlogById(id: string) { return prisma.blogPost.findUnique({ where: { id } }); }
 
-  async createBlogPost(data: Prisma.BlogPostUncheckedCreateInput) {
+  async createBlogPost(data: any /* Prisma.BlogPostUncheckedCreateInput */) {
     return prisma.blogPost.create({ data });
   }
 
-  async updateBlogPost(id: string, data: Prisma.BlogPostUpdateInput) {
+  async updateBlogPost(id: string, data: any /* Prisma.BlogPostUpdateInput */) {
     return prisma.blogPost.update({ where: { id }, data });
   }
 
@@ -72,7 +72,7 @@ export class WebsiteRepository {
     return posts.map((p) => p.category).filter(Boolean);
   }
 
-  // ─── Gallery ───
+  // â”€â”€â”€ Gallery â”€â”€â”€
   async listGalleryItems(tenantId: string, category?: string, publishedOnly = true) {
     const where: Prisma.GalleryItemWhereInput = { tenantId };
     if (category) where.category = category;
@@ -80,7 +80,7 @@ export class WebsiteRepository {
     return prisma.galleryItem.findMany({ where, orderBy: { sortOrder: 'asc' } });
   }
 
-  async createGalleryItem(data: Prisma.GalleryItemUncheckedCreateInput) {
+  async createGalleryItem(data: any /* Prisma.GalleryItemUncheckedCreateInput */) {
     return prisma.galleryItem.create({ data });
   }
 
@@ -96,14 +96,14 @@ export class WebsiteRepository {
     return items.map((i) => i.category).filter(Boolean);
   }
 
-  // ─── Contact Enquiries ───
+  // â”€â”€â”€ Contact Enquiries â”€â”€â”€
   async listEnquiries(tenantId: string, status?: string) {
     const where: Prisma.ContactEnquiryWhereInput = { tenantId };
     if (status) where.status = status;
     return prisma.contactEnquiry.findMany({ where, orderBy: { createdAt: 'desc' }, take: 100 });
   }
 
-  async createEnquiry(data: Prisma.ContactEnquiryUncheckedCreateInput) {
+  async createEnquiry(data: any /* Prisma.ContactEnquiryUncheckedCreateInput */) {
     return prisma.contactEnquiry.create({ data });
   }
 

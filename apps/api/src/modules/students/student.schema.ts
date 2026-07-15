@@ -1,6 +1,6 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 
-// ─── Admission ───
+// â”€â”€â”€ Admission â”€â”€â”€
 export const createAdmissionSchema = z.object({
   firstName: z.string().min(1).max(100).trim(),
   lastName: z.string().min(1).max(100).trim(),
@@ -40,7 +40,7 @@ export const createAdmissionSchema = z.object({
   }).optional(),
 });
 
-// ─── Update Student ───
+// â”€â”€â”€ Update Student â”€â”€â”€
 export const updateStudentSchema = z.object({
   firstName: z.string().min(1).max(100).trim().optional(),
   lastName: z.string().min(1).max(100).trim().optional(),
@@ -62,7 +62,7 @@ export const updateStudentSchema = z.object({
   status: z.enum(['active', 'inactive', 'pending', 'promoted', 'transferred', 'graduated', 'archived']).optional(),
 });
 
-// ─── Parent / Guardian ───
+// â”€â”€â”€ Parent / Guardian â”€â”€â”€
 export const upsertParentSchema = z.object({
   firstName: z.string().min(1).max(100),
   lastName: z.string().min(1).max(100),
@@ -74,7 +74,7 @@ export const upsertParentSchema = z.object({
   isPrimary: z.boolean().default(false),
 });
 
-// ─── Medical ───
+// â”€â”€â”€ Medical â”€â”€â”€
 export const updateMedicalSchema = z.object({
   allergies: z.string().max(500).optional(),
   conditions: z.string().max(500).optional(),
@@ -84,7 +84,7 @@ export const updateMedicalSchema = z.object({
   bloodGroup: z.string().max(5).optional(),
 });
 
-// ─── Documents ───
+// â”€â”€â”€ Documents â”€â”€â”€
 export const uploadDocumentSchema = z.object({
   documentType: z.string().min(1).max(50),
   fileName: z.string().min(1),
@@ -93,7 +93,7 @@ export const uploadDocumentSchema = z.object({
   mimeType: z.string().max(100).optional(),
 });
 
-// ─── Promotion ───
+// â”€â”€â”€ Promotion â”€â”€â”€
 export const promoteStudentsSchema = z.object({
   studentIds: z.array(z.string()).min(1),
   toClassId: z.string().min(1),
@@ -101,14 +101,14 @@ export const promoteStudentsSchema = z.object({
   toAcademicSessionId: z.string().min(1),
 });
 
-// ─── Transfer ───
+// â”€â”€â”€ Transfer â”€â”€â”€
 export const transferStudentSchema = z.object({
   reason: z.string().max(500).optional(),
   transferDate: z.string().datetime().optional(),
   destinationSchool: z.string().max(200).optional(),
 });
 
-// ─── Bulk Import ───
+// â”€â”€â”€ Bulk Import â”€â”€â”€
 export const bulkImportStudentsSchema = z.object({
   students: z.array(z.object({
     firstName: z.string().min(1).max(100),
@@ -125,7 +125,7 @@ export const bulkImportStudentsSchema = z.object({
   })).min(1).max(500),
 });
 
-// ─── List Query ───
+// â”€â”€â”€ List Query â”€â”€â”€
 export const studentListQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
@@ -146,4 +146,4 @@ export type UploadDocumentInput = z.infer<typeof uploadDocumentSchema>;
 export type PromoteStudentsInput = z.infer<typeof promoteStudentsSchema>;
 export type TransferStudentInput = z.infer<typeof transferStudentSchema>;
 export type BulkImportStudentsInput = z.infer<typeof bulkImportStudentsSchema>;
-export type StudentListQuery = z.infer<typeof studentListQuerySchema>;
+export type StudentListQuery = z.output<typeof studentListQuerySchema>;

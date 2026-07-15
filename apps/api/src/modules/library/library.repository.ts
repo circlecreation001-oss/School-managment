@@ -1,10 +1,10 @@
-import { prisma } from '@erp/database';
+﻿import { prisma } from '@erp/database';
 import type { Prisma } from '@erp/database';
 
 export class LibraryRepository {
-  // ─── Books ───
+  // â”€â”€â”€ Books â”€â”€â”€
   async listBooks(tenantId: string, params: {
-    page: number; limit: number; search?: string; category?: string;
+    page?: number; limit?: number; search?: string; category?: string;
     status?: string; available?: boolean;
   }) {
     const where: Prisma.BookWhereInput = { tenantId, deletedAt: null };
@@ -22,7 +22,7 @@ export class LibraryRepository {
     }
     const [data, total] = await Promise.all([
       prisma.book.findMany({
-        where, skip: (params.page - 1) * params.limit, take: params.limit,
+        where, skip: ((params.page || 1) - 1) * (params.limit || 20), take: params.limit || 20,
         orderBy: { title: 'asc' },
       }),
       prisma.book.count({ where }),
@@ -31,8 +31,8 @@ export class LibraryRepository {
   }
 
   async getBook(id: string) { return prisma.book.findUnique({ where: { id } }); }
-  async createBook(data: Prisma.BookUncheckedCreateInput) { return prisma.book.create({ data }); }
-  async updateBook(id: string, data: Prisma.BookUpdateInput) { return prisma.book.update({ where: { id }, data }); }
+  async createBook(data: any /* Prisma.BookUncheckedCreateInput */) { return prisma.book.create({ data }); }
+  async updateBook(id: string, data: any /* Prisma.BookUpdateInput */) { return prisma.book.update({ where: { id }, data }); }
   async deleteBook(id: string) { return prisma.book.update({ where: { id }, data: { deletedAt: new Date(), status: 'archived' } }); }
 
   async decrementAvailable(bookId: string) {
@@ -42,9 +42,9 @@ export class LibraryRepository {
     return prisma.book.update({ where: { id: bookId }, data: { availableCopies: { increment: 1 } } });
   }
 
-  // ─── Issues ───
+  // â”€â”€â”€ Issues â”€â”€â”€
   async listIssues(tenantId: string, params: {
-    page: number; limit: number; status?: string; studentId?: string;
+    page?: number; limit?: number; status?: string; studentId?: string;
     teacherId?: string; overdue?: boolean;
   }) {
     const where: Prisma.BookIssueWhereInput = { tenantId };
@@ -61,7 +61,7 @@ export class LibraryRepository {
           student: { select: { id: true, firstName: true, lastName: true, admissionNumber: true } },
           teacher: { select: { id: true, firstName: true, lastName: true, employeeCode: true } },
         },
-        skip: (params.page - 1) * params.limit, take: params.limit,
+        skip: ((params.page || 1) - 1) * (params.limit || 20), take: params.limit || 20,
         orderBy: { issueDate: 'desc' },
       }),
       prisma.bookIssue.count({ where }),
@@ -76,7 +76,7 @@ export class LibraryRepository {
     });
   }
 
-  async createIssue(data: Prisma.BookIssueUncheckedCreateInput) { return prisma.bookIssue.create({ data }); }
+  async createIssue(data: any /* Prisma.BookIssueUncheckedCreateInput */) { return prisma.bookIssue.create({ data }); }
 
   async returnIssue(id: string, status: string, returnDate: Date) {
     return prisma.bookIssue.update({ where: { id }, data: { status: status as any, returnDate } });
@@ -86,7 +86,7 @@ export class LibraryRepository {
     return prisma.bookIssue.update({ where: { id }, data: { fineAmount: amount, fineReason: reason, finePaid: true } });
   }
 
-  // ─── Reports ───
+  // â”€â”€â”€ Reports â”€â”€â”€
   async getInventoryStats(tenantId: string) {
     const [totalBooks, totalCopies, issuedCount, overdueCount, categories] = await Promise.all([
       prisma.book.count({ where: { tenantId, deletedAt: null } }),
@@ -127,7 +127,7 @@ export class LibraryRepository {
     });
   }
 
-  // ─── Barcode lookup ───
+  // â”€â”€â”€ Barcode lookup â”€â”€â”€
   async findByBarcode(tenantId: string, barcode: string) {
     return prisma.book.findFirst({ where: { tenantId, barcode, deletedAt: null } });
   }

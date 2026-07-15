@@ -1,6 +1,6 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 
-// ─── Book ───
+// â”€â”€â”€ Book â”€â”€â”€
 export const createBookSchema = z.object({
   title: z.string().min(1).max(300).trim(),
   author: z.string().max(200).optional(),
@@ -16,7 +16,7 @@ export const createBookSchema = z.object({
 });
 export const updateBookSchema = createBookSchema.partial();
 
-// ─── Issue ───
+// â”€â”€â”€ Issue â”€â”€â”€
 export const issueBookSchema = z.object({
   bookId: z.string().min(1),
   studentId: z.string().optional(),
@@ -25,21 +25,21 @@ export const issueBookSchema = z.object({
   dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
 });
 
-// ─── Return ───
+// â”€â”€â”€ Return â”€â”€â”€
 export const returnBookSchema = z.object({
   issueId: z.string().min(1),
   condition: z.enum(['good', 'damaged', 'lost']).default('good'),
   remarks: z.string().max(300).optional(),
 });
 
-// ─── Fine ───
+// â”€â”€â”€ Fine â”€â”€â”€
 export const collectFineSchema = z.object({
   issueId: z.string().min(1),
   amount: z.number().min(0),
   reason: z.string().max(200).optional(),
 });
 
-// ─── Query ───
+// â”€â”€â”€ Query â”€â”€â”€
 export const bookListQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
@@ -63,5 +63,5 @@ export type UpdateBookInput = z.infer<typeof updateBookSchema>;
 export type IssueBookInput = z.infer<typeof issueBookSchema>;
 export type ReturnBookInput = z.infer<typeof returnBookSchema>;
 export type CollectFineInput = z.infer<typeof collectFineSchema>;
-export type BookListQuery = z.infer<typeof bookListQuerySchema>;
-export type IssueListQuery = z.infer<typeof issueListQuerySchema>;
+export type BookListQuery = z.output<typeof bookListQuerySchema>;
+export type IssueListQuery = z.output<typeof issueListQuerySchema>;

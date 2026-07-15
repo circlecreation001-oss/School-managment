@@ -1,6 +1,6 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 
-// ─── Send Notification ───
+// â”€â”€â”€ Send Notification â”€â”€â”€
 export const sendNotificationSchema = z.object({
   recipientIds: z.array(z.string()).min(1).max(500),
   channel: z.enum(['email', 'sms', 'whatsapp', 'push', 'in_app']),
@@ -11,7 +11,7 @@ export const sendNotificationSchema = z.object({
   entityId: z.string().optional(),
 });
 
-// ─── Broadcast ───
+// â”€â”€â”€ Broadcast â”€â”€â”€
 export const broadcastSchema = z.object({
   channel: z.enum(['email', 'sms', 'whatsapp', 'push', 'in_app']),
   subject: z.string().max(200).optional(),
@@ -21,7 +21,7 @@ export const broadcastSchema = z.object({
   scheduledAt: z.string().datetime().optional(),
 });
 
-// ─── Template ───
+// â”€â”€â”€ Template â”€â”€â”€
 export const createTemplateSchema = z.object({
   name: z.string().min(1).max(100).trim(),
   code: z.string().min(1).max(50).regex(/^[a-z0-9_]+$/),
@@ -32,7 +32,7 @@ export const createTemplateSchema = z.object({
 });
 export const updateTemplateSchema = createTemplateSchema.partial().omit({ code: true, channel: true });
 
-// ─── Send via Template ───
+// â”€â”€â”€ Send via Template â”€â”€â”€
 export const sendFromTemplateSchema = z.object({
   templateCode: z.string().min(1),
   recipientIds: z.array(z.string()).min(1).max(500),
@@ -41,7 +41,7 @@ export const sendFromTemplateSchema = z.object({
   entityId: z.string().optional(),
 });
 
-// ─── Schedule ───
+// â”€â”€â”€ Schedule â”€â”€â”€
 export const scheduleNotificationSchema = z.object({
   channel: z.enum(['email', 'sms', 'whatsapp', 'push', 'in_app']),
   subject: z.string().max(200).optional(),
@@ -50,7 +50,7 @@ export const scheduleNotificationSchema = z.object({
   scheduledAt: z.string().datetime(),
 });
 
-// ─── Query ───
+// â”€â”€â”€ Query â”€â”€â”€
 export const notificationListQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
@@ -65,4 +65,4 @@ export type CreateTemplateInput = z.infer<typeof createTemplateSchema>;
 export type UpdateTemplateInput = z.infer<typeof updateTemplateSchema>;
 export type SendFromTemplateInput = z.infer<typeof sendFromTemplateSchema>;
 export type ScheduleNotificationInput = z.infer<typeof scheduleNotificationSchema>;
-export type NotificationListQuery = z.infer<typeof notificationListQuerySchema>;
+export type NotificationListQuery = z.output<typeof notificationListQuerySchema>;

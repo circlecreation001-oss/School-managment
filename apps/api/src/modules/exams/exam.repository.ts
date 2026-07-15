@@ -1,10 +1,10 @@
-import { prisma } from '@erp/database';
+﻿import { prisma } from '@erp/database';
 import type { Prisma } from '@erp/database';
 
 export class ExamRepository {
-  // ─── Exams ───
+  // â”€â”€â”€ Exams â”€â”€â”€
   async listExams(tenantId: string, branchId: string, params: {
-    page: number; limit: number; classId?: string; examType?: string;
+    page?: number; limit?: number; classId?: string; examType?: string;
     status?: string; academicSessionId?: string;
   }) {
     const where: Prisma.ExamWhereInput = { tenantId, branchId, deletedAt: null };
@@ -22,8 +22,8 @@ export class ExamRepository {
           teacher: { select: { firstName: true, lastName: true } },
           _count: { select: { results: true } },
         },
-        skip: (params.page - 1) * params.limit,
-        take: params.limit,
+        skip: ((params.page || 1) - 1) * (params.limit || 20),
+        take: params.limit || 20,
         orderBy: { examDate: 'desc' },
       }),
       prisma.exam.count({ where }),
@@ -46,11 +46,11 @@ export class ExamRepository {
     });
   }
 
-  async createExam(data: Prisma.ExamUncheckedCreateInput) { return prisma.exam.create({ data }); }
-  async updateExam(id: string, data: Prisma.ExamUpdateInput) { return prisma.exam.update({ where: { id }, data }); }
+  async createExam(data: any /* Prisma.ExamUncheckedCreateInput */) { return prisma.exam.create({ data }); }
+  async updateExam(id: string, data: any /* Prisma.ExamUpdateInput */) { return prisma.exam.update({ where: { id }, data }); }
   async deleteExam(id: string) { return prisma.exam.update({ where: { id }, data: { deletedAt: new Date(), status: 'cancelled' } }); }
 
-  // ─── Results ───
+  // â”€â”€â”€ Results â”€â”€â”€
   async upsertResult(data: { tenantId: string; examId: string; studentId: string; marksObtained: number; remarks?: string }) {
     return prisma.result.upsert({
       where: { examId_studentId: { examId: data.examId, studentId: data.studentId } },
@@ -92,12 +92,12 @@ export class ExamRepository {
     });
   }
 
-  // ─── Grades ───
+  // â”€â”€â”€ Grades â”€â”€â”€
   async listGrades(tenantId: string) {
     return prisma.grade.findMany({ where: { tenantId }, orderBy: { minMarks: 'desc' } });
   }
-  async createGrade(data: Prisma.GradeUncheckedCreateInput) { return prisma.grade.create({ data }); }
-  async updateGrade(id: string, data: Prisma.GradeUpdateInput) { return prisma.grade.update({ where: { id }, data }); }
+  async createGrade(data: any /* Prisma.GradeUncheckedCreateInput */) { return prisma.grade.create({ data }); }
+  async updateGrade(id: string, data: any /* Prisma.GradeUpdateInput */) { return prisma.grade.update({ where: { id }, data }); }
   async deleteGrade(id: string) { return prisma.grade.delete({ where: { id } }); }
   async findGradeForMarks(tenantId: string, percentage: number) {
     return prisma.grade.findFirst({
@@ -105,7 +105,7 @@ export class ExamRepository {
     });
   }
 
-  // ─── Analytics ───
+  // â”€â”€â”€ Analytics â”€â”€â”€
   async getExamAnalytics(tenantId: string, examId: string) {
     const results = await prisma.result.findMany({
       where: { tenantId, examId, deletedAt: null },
@@ -140,7 +140,7 @@ export class ExamRepository {
     });
   }
 
-  // ─── Report Card data ───
+  // â”€â”€â”€ Report Card data â”€â”€â”€
   async getReportCardData(tenantId: string, studentId: string, sessionId: string) {
     const results = await prisma.result.findMany({
       where: { tenantId, studentId, deletedAt: null, status: 'published', exam: { academicSessionId: sessionId } },

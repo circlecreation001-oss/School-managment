@@ -1,4 +1,4 @@
-import { prisma } from '@erp/database';
+﻿import { prisma } from '@erp/database';
 import type { Prisma } from '@erp/database';
 
 export class UserRepository {
@@ -20,8 +20,8 @@ export class UserRepository {
   }
 
   async list(tenantId: string, params: {
-    page: number; limit: number; search?: string;
-    status?: string; roleCode?: string; sortBy: string; sortOrder: 'asc' | 'desc';
+    page?: number; limit?: number; search?: string;
+    status?: string; roleCode?: string; sortBy?: string; sortOrder?: 'asc' | 'desc';
   }) {
     const where: Prisma.UserWhereInput = { tenantId, deletedAt: null };
 
@@ -48,8 +48,8 @@ export class UserRepository {
           emailVerified: true, lastLoginAt: true, createdAt: true,
           userRoles: { include: { role: { select: { id: true, name: true, code: true } } } },
         },
-        skip: (params.page - 1) * params.limit,
-        take: params.limit,
+        skip: ((params.page || 1) - 1) * (params.limit || 20),
+        take: params.limit || 20,
         orderBy: { [params.sortBy]: params.sortOrder },
       }),
       prisma.user.count({ where }),
@@ -58,14 +58,14 @@ export class UserRepository {
     return { data, total };
   }
 
-  async create(data: Prisma.UserUncheckedCreateInput) {
+  async create(data: any /* Prisma.UserUncheckedCreateInput */) {
     return prisma.user.create({
       data,
       include: { userRoles: { include: { role: { select: { name: true, code: true } } } } },
     });
   }
 
-  async update(id: string, data: Prisma.UserUpdateInput) {
+  async update(id: string, data: any /* Prisma.UserUpdateInput */) {
     return prisma.user.update({
       where: { id }, data,
       include: { userRoles: { include: { role: { select: { name: true, code: true } } } } },
@@ -86,7 +86,7 @@ export class UserRepository {
     });
   }
 
-  // ─── Roles ───
+  // â”€â”€â”€ Roles â”€â”€â”€
   async assignRole(userId: string, roleId: string, tenantId: string, assignedBy: string, institutionId?: string, branchId?: string) {
     return prisma.userRole.upsert({
       where: { userId_roleId_tenantId: { userId, roleId, tenantId } },
@@ -110,7 +110,7 @@ export class UserRepository {
     });
   }
 
-  // ─── Sessions ───
+  // â”€â”€â”€ Sessions â”€â”€â”€
   async getActiveSessions(userId: string) {
     return prisma.session.findMany({
       where: { userId, isActive: true, expiresAt: { gt: new Date() } },
@@ -133,7 +133,7 @@ export class UserRepository {
     });
   }
 
-  // ─── Audit / Activity ───
+  // â”€â”€â”€ Audit / Activity â”€â”€â”€
   async getAuditHistory(userId: string, limit = 50) {
     return prisma.auditLog.findMany({
       where: { OR: [{ actorUserId: userId }, { entityId: userId, entityType: 'user' }] },
@@ -151,7 +151,7 @@ export class UserRepository {
     });
   }
 
-  // ─── Bulk ───
+  // â”€â”€â”€ Bulk â”€â”€â”€
   async createMany(data: Prisma.UserCreateManyInput[]) {
     return prisma.user.createMany({ data, skipDuplicates: true });
   }

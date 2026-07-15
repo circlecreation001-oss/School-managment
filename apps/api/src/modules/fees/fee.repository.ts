@@ -1,16 +1,16 @@
-import { prisma } from '@erp/database';
+﻿import { prisma } from '@erp/database';
 import type { Prisma } from '@erp/database';
 
 export class FeeRepository {
-  // ─── Fee Categories ───
+  // â”€â”€â”€ Fee Categories â”€â”€â”€
   async listCategories(tenantId: string) {
     return prisma.feeCategory.findMany({ where: { tenantId, deletedAt: null }, orderBy: { name: 'asc' } });
   }
-  async createCategory(data: Prisma.FeeCategoryUncheckedCreateInput) { return prisma.feeCategory.create({ data }); }
-  async updateCategory(id: string, data: Prisma.FeeCategoryUpdateInput) { return prisma.feeCategory.update({ where: { id }, data }); }
+  async createCategory(data: any /* Prisma.FeeCategoryUncheckedCreateInput */) { return prisma.feeCategory.create({ data }); }
+  async updateCategory(id: string, data: any /* Prisma.FeeCategoryUpdateInput */) { return prisma.feeCategory.update({ where: { id }, data }); }
   async deleteCategory(id: string) { return prisma.feeCategory.update({ where: { id }, data: { deletedAt: new Date(), status: 'archived' } }); }
 
-  // ─── Fee Structures ───
+  // â”€â”€â”€ Fee Structures â”€â”€â”€
   async listStructures(tenantId: string, branchId: string, sessionId?: string) {
     const where: Prisma.FeeStructureWhereInput = { tenantId, branchId, deletedAt: null };
     if (sessionId) where.academicSessionId = sessionId;
@@ -20,13 +20,13 @@ export class FeeRepository {
     });
   }
   async getStructure(id: string) { return prisma.feeStructure.findUnique({ where: { id }, include: { feeCategory: true, class: true } }); }
-  async createStructure(data: Prisma.FeeStructureUncheckedCreateInput) { return prisma.feeStructure.create({ data }); }
-  async updateStructure(id: string, data: Prisma.FeeStructureUpdateInput) { return prisma.feeStructure.update({ where: { id }, data }); }
+  async createStructure(data: any /* Prisma.FeeStructureUncheckedCreateInput */) { return prisma.feeStructure.create({ data }); }
+  async updateStructure(id: string, data: any /* Prisma.FeeStructureUpdateInput */) { return prisma.feeStructure.update({ where: { id }, data }); }
   async deleteStructure(id: string) { return prisma.feeStructure.update({ where: { id }, data: { deletedAt: new Date(), status: 'archived' } }); }
 
-  // ─── Invoices ───
+  // â”€â”€â”€ Invoices â”€â”€â”€
   async listInvoices(tenantId: string, params: {
-    page: number; limit: number; status?: string; classId?: string;
+    page?: number; limit?: number; status?: string; classId?: string;
     studentId?: string; startDate?: Date; endDate?: Date;
   }) {
     const where: Prisma.InvoiceWhereInput = { tenantId, deletedAt: null };
@@ -46,8 +46,8 @@ export class FeeRepository {
           feeStructure: { select: { name: true }, },
           payments: { select: { id: true, amount: true, status: true, paidAt: true, paymentMethod: true } },
         },
-        skip: (params.page - 1) * params.limit,
-        take: params.limit,
+        skip: ((params.page || 1) - 1) * (params.limit || 20),
+        take: params.limit || 20,
         orderBy: { createdAt: 'desc' },
       }),
       prisma.invoice.count({ where }),
@@ -66,8 +66,8 @@ export class FeeRepository {
     });
   }
 
-  async createInvoice(data: Prisma.InvoiceUncheckedCreateInput) { return prisma.invoice.create({ data }); }
-  async updateInvoice(id: string, data: Prisma.InvoiceUpdateInput) { return prisma.invoice.update({ where: { id }, data }); }
+  async createInvoice(data: any /* Prisma.InvoiceUncheckedCreateInput */) { return prisma.invoice.create({ data }); }
+  async updateInvoice(id: string, data: any /* Prisma.InvoiceUpdateInput */) { return prisma.invoice.update({ where: { id }, data }); }
 
   async getNextInvoiceNumber(tenantId: string): Promise<string> {
     const count = await prisma.invoice.count({ where: { tenantId } });
@@ -75,8 +75,8 @@ export class FeeRepository {
     return `INV${year}${String(count + 1).padStart(6, '0')}`;
   }
 
-  // ─── Payments ───
-  async createPayment(data: Prisma.PaymentUncheckedCreateInput) { return prisma.payment.create({ data }); }
+  // â”€â”€â”€ Payments â”€â”€â”€
+  async createPayment(data: any /* Prisma.PaymentUncheckedCreateInput */) { return prisma.payment.create({ data }); }
   async getPayment(id: string) { return prisma.payment.findUnique({ where: { id }, include: { invoice: true } }); }
   async getNextReceiptNumber(tenantId: string): Promise<string> {
     const count = await prisma.payment.count({ where: { tenantId } });
@@ -85,15 +85,15 @@ export class FeeRepository {
   }
   async updatePaymentStatus(id: string, status: string) { return prisma.payment.update({ where: { id }, data: { status: status as any } }); }
 
-  // ─── Discounts ───
-  async applyDiscount(data: Prisma.DiscountUncheckedCreateInput) { return prisma.discount.create({ data }); }
+  // â”€â”€â”€ Discounts â”€â”€â”€
+  async applyDiscount(data: any /* Prisma.DiscountUncheckedCreateInput */) { return prisma.discount.create({ data }); }
   async getInvoiceDiscounts(invoiceId: string) { return prisma.discount.findMany({ where: { invoiceId } }); }
 
-  // ─── Scholarships ───
-  async applyScholarship(data: Prisma.ScholarshipUncheckedCreateInput) { return prisma.scholarship.create({ data }); }
+  // â”€â”€â”€ Scholarships â”€â”€â”€
+  async applyScholarship(data: any /* Prisma.ScholarshipUncheckedCreateInput */) { return prisma.scholarship.create({ data }); }
   async getInvoiceScholarships(invoiceId: string) { return prisma.scholarship.findMany({ where: { invoiceId } }); }
 
-  // ─── Reports ───
+  // â”€â”€â”€ Reports â”€â”€â”€
   async getDueReport(tenantId: string, classId?: string) {
     const where: Prisma.InvoiceWhereInput = {
       tenantId, deletedAt: null, status: { in: ['issued', 'partially_paid', 'overdue'] },
@@ -136,7 +136,7 @@ export class FeeRepository {
     return Object.entries(monthly).map(([month, amount]) => ({ month, amount }));
   }
 
-  // ─── Student Ledger ───
+  // â”€â”€â”€ Student Ledger â”€â”€â”€
   async getStudentLedger(tenantId: string, studentId: string) {
     return prisma.invoice.findMany({
       where: { tenantId, studentId, deletedAt: null },

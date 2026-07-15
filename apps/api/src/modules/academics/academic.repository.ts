@@ -1,8 +1,8 @@
-import { prisma } from '@erp/database';
+﻿import { prisma } from '@erp/database';
 import type { Prisma } from '@erp/database';
 
 export class AcademicRepository {
-  // ─── Sessions ───
+  // â”€â”€â”€ Sessions â”€â”€â”€
   async listSessions(tenantId: string) {
     return prisma.academicSession.findMany({
       where: { tenantId, deletedAt: null },
@@ -12,10 +12,10 @@ export class AcademicRepository {
   async getSession(id: string) {
     return prisma.academicSession.findUnique({ where: { id } });
   }
-  async createSession(data: Prisma.AcademicSessionUncheckedCreateInput) {
+  async createSession(data: any /* Prisma.AcademicSessionUncheckedCreateInput */) {
     return prisma.academicSession.create({ data });
   }
-  async updateSession(id: string, data: Prisma.AcademicSessionUpdateInput) {
+  async updateSession(id: string, data: any /* Prisma.AcademicSessionUpdateInput */) {
     return prisma.academicSession.update({ where: { id }, data });
   }
   async setCurrentSession(tenantId: string, sessionId: string) {
@@ -23,7 +23,7 @@ export class AcademicRepository {
     return prisma.academicSession.update({ where: { id: sessionId }, data: { isCurrent: true } });
   }
 
-  // ─── Departments ───
+  // â”€â”€â”€ Departments â”€â”€â”€
   async listDepartments(tenantId: string, branchId: string) {
     return prisma.department.findMany({
       where: { tenantId, branchId, deletedAt: null },
@@ -33,26 +33,26 @@ export class AcademicRepository {
   async getDepartment(id: string) {
     return prisma.department.findUnique({ where: { id } });
   }
-  async createDepartment(data: Prisma.DepartmentUncheckedCreateInput) {
+  async createDepartment(data: any /* Prisma.DepartmentUncheckedCreateInput */) {
     return prisma.department.create({ data });
   }
-  async updateDepartment(id: string, data: Prisma.DepartmentUpdateInput) {
+  async updateDepartment(id: string, data: any /* Prisma.DepartmentUpdateInput */) {
     return prisma.department.update({ where: { id }, data });
   }
   async deleteDepartment(id: string) {
     return prisma.department.update({ where: { id }, data: { deletedAt: new Date(), status: 'archived' } });
   }
 
-  // ─── Courses / Streams ───
+  // â”€â”€â”€ Courses / Streams â”€â”€â”€
   async listCourses(tenantId: string, branchId: string) {
     return prisma.course.findMany({ where: { tenantId, branchId, deletedAt: null }, orderBy: { name: 'asc' } });
   }
   async getCourse(id: string) { return prisma.course.findUnique({ where: { id } }); }
-  async createCourse(data: Prisma.CourseUncheckedCreateInput) { return prisma.course.create({ data }); }
-  async updateCourse(id: string, data: Prisma.CourseUpdateInput) { return prisma.course.update({ where: { id }, data }); }
+  async createCourse(data: any /* Prisma.CourseUncheckedCreateInput */) { return prisma.course.create({ data }); }
+  async updateCourse(id: string, data: any /* Prisma.CourseUpdateInput */) { return prisma.course.update({ where: { id }, data }); }
   async deleteCourse(id: string) { return prisma.course.update({ where: { id }, data: { deletedAt: new Date(), status: 'archived' } }); }
 
-  // ─── Classes ───
+  // â”€â”€â”€ Classes â”€â”€â”€
   async listClasses(tenantId: string, branchId: string, sessionId?: string) {
     const where: Prisma.ClassWhereInput = { tenantId, branchId, deletedAt: null };
     if (sessionId) where.academicSessionId = sessionId;
@@ -68,31 +68,31 @@ export class AcademicRepository {
       include: { sections: { where: { deletedAt: null } }, subjects: { where: { deletedAt: null } } },
     });
   }
-  async createClass(data: Prisma.ClassUncheckedCreateInput) { return prisma.class.create({ data }); }
-  async updateClass(id: string, data: Prisma.ClassUpdateInput) { return prisma.class.update({ where: { id }, data }); }
+  async createClass(data: any /* Prisma.ClassUncheckedCreateInput */) { return prisma.class.create({ data }); }
+  async updateClass(id: string, data: any /* Prisma.ClassUpdateInput */) { return prisma.class.update({ where: { id }, data }); }
   async deleteClass(id: string) { return prisma.class.update({ where: { id }, data: { deletedAt: new Date(), status: 'archived' } }); }
 
-  // ─── Sections ───
+  // â”€â”€â”€ Sections â”€â”€â”€
   async listSections(classId: string) {
     return prisma.section.findMany({ where: { classId, deletedAt: null }, orderBy: { name: 'asc' } });
   }
   async getSection(id: string) { return prisma.section.findUnique({ where: { id } }); }
-  async createSection(data: Prisma.SectionUncheckedCreateInput) { return prisma.section.create({ data }); }
-  async updateSection(id: string, data: Prisma.SectionUpdateInput) { return prisma.section.update({ where: { id }, data }); }
+  async createSection(data: any /* Prisma.SectionUncheckedCreateInput */) { return prisma.section.create({ data }); }
+  async updateSection(id: string, data: any /* Prisma.SectionUpdateInput */) { return prisma.section.update({ where: { id }, data }); }
   async deleteSection(id: string) { return prisma.section.update({ where: { id }, data: { deletedAt: new Date(), status: 'archived' } }); }
 
-  // ─── Subjects ───
+  // â”€â”€â”€ Subjects â”€â”€â”€
   async listSubjects(tenantId: string, branchId: string, classId?: string) {
     const where: Prisma.SubjectWhereInput = { tenantId, branchId, deletedAt: null };
     if (classId) where.classId = classId;
     return prisma.subject.findMany({ where, orderBy: { name: 'asc' } });
   }
   async getSubject(id: string) { return prisma.subject.findUnique({ where: { id } }); }
-  async createSubject(data: Prisma.SubjectUncheckedCreateInput) { return prisma.subject.create({ data }); }
-  async updateSubject(id: string, data: Prisma.SubjectUpdateInput) { return prisma.subject.update({ where: { id }, data }); }
+  async createSubject(data: any /* Prisma.SubjectUncheckedCreateInput */) { return prisma.subject.create({ data }); }
+  async updateSubject(id: string, data: any /* Prisma.SubjectUpdateInput */) { return prisma.subject.update({ where: { id }, data }); }
   async deleteSubject(id: string) { return prisma.subject.update({ where: { id }, data: { deletedAt: new Date(), status: 'archived' } }); }
 
-  // ─── Subject Groups ───
+  // â”€â”€â”€ Subject Groups â”€â”€â”€
   async listSubjectGroups(tenantId: string, classId: string) {
     return prisma.subjectGroup.findMany({
       where: { tenantId, classId },
@@ -107,7 +107,7 @@ export class AcademicRepository {
   }
   async deleteSubjectGroup(id: string) { return prisma.subjectGroup.delete({ where: { id } }); }
 
-  // ─── Class Teacher Assignment ───
+  // â”€â”€â”€ Class Teacher Assignment â”€â”€â”€
   async getClassTeacher(tenantId: string, classId: string, sectionId?: string) {
     return prisma.classTeacherAssignment.findFirst({ where: { tenantId, classId, sectionId: sectionId || null } });
   }
@@ -123,7 +123,7 @@ export class AcademicRepository {
     return prisma.classTeacherAssignment.findMany({ where: { tenantId, branchId } });
   }
 
-  // ─── Subject Teacher Assignment ───
+  // â”€â”€â”€ Subject Teacher Assignment â”€â”€â”€
   async getSubjectTeacher(tenantId: string, classId: string, subjectId: string) {
     return prisma.subjectTeacherAssignment.findFirst({ where: { tenantId, classId, subjectId } });
   }
@@ -139,19 +139,19 @@ export class AcademicRepository {
     return prisma.subjectTeacherAssignment.findMany({ where: { tenantId, classId } });
   }
 
-  // ─── Promotion Rules ───
+  // â”€â”€â”€ Promotion Rules â”€â”€â”€
   async listPromotionRules(tenantId: string, branchId: string) {
     return prisma.promotionRule.findMany({ where: { tenantId, branchId } });
   }
-  async createPromotionRule(data: Prisma.PromotionRuleUncheckedCreateInput) {
+  async createPromotionRule(data: any /* Prisma.PromotionRuleUncheckedCreateInput */) {
     return prisma.promotionRule.create({ data });
   }
-  async updatePromotionRule(id: string, data: Prisma.PromotionRuleUpdateInput) {
+  async updatePromotionRule(id: string, data: any /* Prisma.PromotionRuleUpdateInput */) {
     return prisma.promotionRule.update({ where: { id }, data });
   }
   async deletePromotionRule(id: string) { return prisma.promotionRule.delete({ where: { id } }); }
 
-  // ─── Calendar Events ───
+  // â”€â”€â”€ Calendar Events â”€â”€â”€
   async listCalendarEvents(tenantId: string, branchId: string, params?: { startDate?: Date; endDate?: Date; eventType?: string }) {
     const where: Prisma.CalendarEventWhereInput = { tenantId, branchId, deletedAt: null };
     if (params?.eventType) where.eventType = params.eventType;
@@ -162,8 +162,8 @@ export class AcademicRepository {
     }
     return prisma.calendarEvent.findMany({ where, orderBy: { startDate: 'asc' } });
   }
-  async createCalendarEvent(data: Prisma.CalendarEventUncheckedCreateInput) { return prisma.calendarEvent.create({ data }); }
-  async updateCalendarEvent(id: string, data: Prisma.CalendarEventUpdateInput) { return prisma.calendarEvent.update({ where: { id }, data }); }
+  async createCalendarEvent(data: any /* Prisma.CalendarEventUncheckedCreateInput */) { return prisma.calendarEvent.create({ data }); }
+  async updateCalendarEvent(id: string, data: any /* Prisma.CalendarEventUpdateInput */) { return prisma.calendarEvent.update({ where: { id }, data }); }
   async deleteCalendarEvent(id: string) { return prisma.calendarEvent.update({ where: { id }, data: { deletedAt: new Date() } }); }
 }
 

@@ -1,6 +1,6 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 
-// ─── Exam Types ───
+// â”€â”€â”€ Exam Types â”€â”€â”€
 export const createExamSchema = z.object({
   name: z.string().min(1).max(150).trim(),
   examType: z.enum(['unit_test', 'mid_term', 'terminal', 'final', 'practical', 'viva', 'mock', 'entrance']),
@@ -16,7 +16,7 @@ export const createExamSchema = z.object({
 });
 export const updateExamSchema = createExamSchema.partial();
 
-// ─── Exam Schedule (batch) ───
+// â”€â”€â”€ Exam Schedule (batch) â”€â”€â”€
 export const createExamScheduleSchema = z.object({
   name: z.string().min(1).max(150),
   examType: z.enum(['unit_test', 'mid_term', 'terminal', 'final', 'practical', 'viva', 'mock', 'entrance']),
@@ -32,7 +32,7 @@ export const createExamScheduleSchema = z.object({
   })).min(1),
 });
 
-// ─── Marks Entry ───
+// â”€â”€â”€ Marks Entry â”€â”€â”€
 export const enterMarksSchema = z.object({
   examId: z.string().min(1),
   marks: z.array(z.object({
@@ -42,7 +42,7 @@ export const enterMarksSchema = z.object({
   })).min(1).max(200),
 });
 
-// ─── Grade System ───
+// â”€â”€â”€ Grade System â”€â”€â”€
 export const createGradeSchema = z.object({
   name: z.string().min(1).max(10),
   minMarks: z.number().min(0),
@@ -51,12 +51,12 @@ export const createGradeSchema = z.object({
   description: z.string().max(100).optional(),
 });
 
-// ─── Result Publication ───
+// â”€â”€â”€ Result Publication â”€â”€â”€
 export const publishResultsSchema = z.object({
   examId: z.string().min(1),
 });
 
-// ─── Queries ───
+// â”€â”€â”€ Queries â”€â”€â”€
 export const examListQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
@@ -77,4 +77,4 @@ export type CreateExamInput = z.infer<typeof createExamSchema>;
 export type CreateExamScheduleInput = z.infer<typeof createExamScheduleSchema>;
 export type EnterMarksInput = z.infer<typeof enterMarksSchema>;
 export type CreateGradeInput = z.infer<typeof createGradeSchema>;
-export type ExamListQuery = z.infer<typeof examListQuerySchema>;
+export type ExamListQuery = z.output<typeof examListQuerySchema>;

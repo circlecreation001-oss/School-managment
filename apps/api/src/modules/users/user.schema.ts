@@ -1,4 +1,4 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 
 export const createUserSchema = z.object({
   firstName: z.string().min(1).max(100).trim(),
@@ -68,4 +68,4 @@ export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type AssignRoleInput = z.infer<typeof assignRoleSchema>;
 export type BulkImportInput = z.infer<typeof bulkImportSchema>;
-export type UserListQuery = z.infer<typeof userListQuerySchema>;
+export type UserListQuery = z.output<typeof userListQuerySchema>;

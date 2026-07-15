@@ -1,6 +1,6 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 
-// ─── Pages ───
+// â”€â”€â”€ Pages â”€â”€â”€
 export const createPageSchema = z.object({
   slug: z.string().min(1).max(100).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
   title: z.string().min(1).max(200).trim(),
@@ -14,7 +14,7 @@ export const createPageSchema = z.object({
 });
 export const updatePageSchema = createPageSchema.partial().omit({ slug: true });
 
-// ─── Blog ───
+// â”€â”€â”€ Blog â”€â”€â”€
 export const createBlogPostSchema = z.object({
   slug: z.string().min(1).max(150).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
   title: z.string().min(1).max(300).trim(),
@@ -30,7 +30,7 @@ export const createBlogPostSchema = z.object({
 });
 export const updateBlogPostSchema = createBlogPostSchema.partial().omit({ slug: true });
 
-// ─── Gallery ───
+// â”€â”€â”€ Gallery â”€â”€â”€
 export const createGalleryItemSchema = z.object({
   title: z.string().max(200).optional(),
   imageUrl: z.string().url(),
@@ -40,7 +40,7 @@ export const createGalleryItemSchema = z.object({
   isPublished: z.boolean().default(true),
 });
 
-// ─── Contact Enquiry ───
+// â”€â”€â”€ Contact Enquiry â”€â”€â”€
 export const createEnquirySchema = z.object({
   fullName: z.string().min(1).max(100).trim(),
   email: z.string().email().optional(),
@@ -50,7 +50,7 @@ export const createEnquirySchema = z.object({
   source: z.string().max(50).optional(),
 });
 
-// ─── Query ───
+// â”€â”€â”€ Query â”€â”€â”€
 export const pageListQuerySchema = z.object({
   pageType: z.string().optional(),
   isPublished: z.coerce.boolean().optional(),
@@ -69,4 +69,4 @@ export type CreateBlogPostInput = z.infer<typeof createBlogPostSchema>;
 export type UpdateBlogPostInput = z.infer<typeof updateBlogPostSchema>;
 export type CreateGalleryItemInput = z.infer<typeof createGalleryItemSchema>;
 export type CreateEnquiryInput = z.infer<typeof createEnquirySchema>;
-export type BlogListQuery = z.infer<typeof blogListQuerySchema>;
+export type BlogListQuery = z.output<typeof blogListQuerySchema>;

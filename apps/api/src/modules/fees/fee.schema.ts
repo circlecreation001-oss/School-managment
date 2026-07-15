@@ -1,6 +1,6 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 
-// ─── Fee Category ───
+// â”€â”€â”€ Fee Category â”€â”€â”€
 export const createFeeCategorySchema = z.object({
   name: z.string().min(1).max(100).trim(),
   code: z.string().min(1).max(20).regex(/^[A-Z0-9_]+$/),
@@ -8,7 +8,7 @@ export const createFeeCategorySchema = z.object({
 });
 export const updateFeeCategorySchema = createFeeCategorySchema.partial();
 
-// ─── Fee Structure ───
+// â”€â”€â”€ Fee Structure â”€â”€â”€
 export const createFeeStructureSchema = z.object({
   name: z.string().min(1).max(150).trim(),
   academicSessionId: z.string().min(1),
@@ -20,7 +20,7 @@ export const createFeeStructureSchema = z.object({
 });
 export const updateFeeStructureSchema = createFeeStructureSchema.partial();
 
-// ─── Fine Rules ───
+// â”€â”€â”€ Fine Rules â”€â”€â”€
 export const createFineRuleSchema = z.object({
   feeCategoryId: z.string().optional(),
   name: z.string().min(1).max(100),
@@ -30,7 +30,7 @@ export const createFineRuleSchema = z.object({
   maxAmount: z.number().min(0).optional(),
 });
 
-// ─── Invoice ───
+// â”€â”€â”€ Invoice â”€â”€â”€
 export const generateInvoiceSchema = z.object({
   studentId: z.string().min(1),
   feeStructureId: z.string().min(1),
@@ -45,7 +45,7 @@ export const generateBulkInvoicesSchema = z.object({
   dueDate: z.string().datetime().optional(),
 });
 
-// ─── Payment ───
+// â”€â”€â”€ Payment â”€â”€â”€
 export const recordPaymentSchema = z.object({
   invoiceId: z.string().min(1),
   amount: z.number().min(0.01),
@@ -55,7 +55,7 @@ export const recordPaymentSchema = z.object({
   paidAt: z.string().datetime().optional(),
 });
 
-// ─── Discount ───
+// â”€â”€â”€ Discount â”€â”€â”€
 export const applyDiscountSchema = z.object({
   invoiceId: z.string().min(1),
   name: z.string().min(1).max(100),
@@ -64,21 +64,21 @@ export const applyDiscountSchema = z.object({
   reason: z.string().max(300).optional(),
 });
 
-// ─── Scholarship ───
+// â”€â”€â”€ Scholarship â”€â”€â”€
 export const applyScholarshipSchema = z.object({
   invoiceId: z.string().min(1),
   name: z.string().min(1).max(100),
   amount: z.number().min(0),
 });
 
-// ─── Refund ───
+// â”€â”€â”€ Refund â”€â”€â”€
 export const processRefundSchema = z.object({
   paymentId: z.string().min(1),
   amount: z.number().min(0.01),
   reason: z.string().min(1).max(500),
 });
 
-// ─── Queries ───
+// â”€â”€â”€ Queries â”€â”€â”€
 export const feeListQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
@@ -98,4 +98,4 @@ export type RecordPaymentInput = z.infer<typeof recordPaymentSchema>;
 export type ApplyDiscountInput = z.infer<typeof applyDiscountSchema>;
 export type ApplyScholarshipInput = z.infer<typeof applyScholarshipSchema>;
 export type ProcessRefundInput = z.infer<typeof processRefundSchema>;
-export type FeeListQuery = z.infer<typeof feeListQuerySchema>;
+export type FeeListQuery = z.output<typeof feeListQuerySchema>;

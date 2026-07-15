@@ -1,8 +1,8 @@
-import { prisma } from '@erp/database';
+﻿import { prisma } from '@erp/database';
 import type { Prisma } from '@erp/database';
 
 export class OrganizationRepository {
-  // ─── Tenants ───
+  // â”€â”€â”€ Tenants â”€â”€â”€
   async findById(id: string) {
     return prisma.tenant.findUnique({
       where: { id },
@@ -20,7 +20,7 @@ export class OrganizationRepository {
   }
 
   async list(params: {
-    page: number; limit: number; search?: string;
+    page?: number; limit?: number; search?: string;
     status?: string; type?: string; sortBy?: string; sortOrder?: 'asc' | 'desc';
   }) {
     const where: Prisma.TenantWhereInput = { deletedAt: null };
@@ -40,8 +40,8 @@ export class OrganizationRepository {
           settings: { select: { brandingName: true, logoUrl: true, timezone: true, currency: true } },
           _count: { select: { users: true, institutions: true } },
         },
-        skip: (params.page - 1) * params.limit,
-        take: params.limit,
+        skip: ((params.page || 1) - 1) * (params.limit || 20),
+        take: params.limit || 20,
         orderBy: { [params.sortBy || 'createdAt']: params.sortOrder || 'desc' },
       }),
       prisma.tenant.count({ where }),
@@ -53,7 +53,7 @@ export class OrganizationRepository {
     return prisma.tenant.create({ data, include: { settings: true } });
   }
 
-  async update(id: string, data: Prisma.TenantUpdateInput) {
+  async update(id: string, data: any /* Prisma.TenantUpdateInput */) {
     return prisma.tenant.update({ where: { id }, data, include: { settings: true } });
   }
 
@@ -76,8 +76,8 @@ export class OrganizationRepository {
     return excludeId ? existing.id === excludeId : false;
   }
 
-  // ─── Branding / Settings ───
-  async updateSettings(tenantId: string, data: Prisma.TenantSettingsUpdateInput) {
+  // â”€â”€â”€ Branding / Settings â”€â”€â”€
+  async updateSettings(tenantId: string, data: any /* Prisma.TenantSettingsUpdateInput */) {
     return prisma.tenantSettings.update({ where: { tenantId }, data });
   }
 
@@ -85,7 +85,7 @@ export class OrganizationRepository {
     return prisma.tenantSettings.findUnique({ where: { tenantId } });
   }
 
-  // ─── Plans ───
+  // â”€â”€â”€ Plans â”€â”€â”€
   async listPlans(activeOnly = true) {
     const where: Prisma.PlanWhereInput = {};
     if (activeOnly) where.isActive = true;
@@ -100,11 +100,11 @@ export class OrganizationRepository {
     return prisma.plan.create({ data });
   }
 
-  async updatePlan(id: string, data: Prisma.PlanUpdateInput) {
+  async updatePlan(id: string, data: any /* Prisma.PlanUpdateInput */) {
     return prisma.plan.update({ where: { id }, data });
   }
 
-  // ─── Subscriptions ───
+  // â”€â”€â”€ Subscriptions â”€â”€â”€
   async getActiveSubscription(tenantId: string) {
     return prisma.subscription.findFirst({
       where: { tenantId, status: 'active' },
@@ -121,11 +121,11 @@ export class OrganizationRepository {
     });
   }
 
-  async createSubscription(data: Prisma.SubscriptionUncheckedCreateInput) {
+  async createSubscription(data: any /* Prisma.SubscriptionUncheckedCreateInput */) {
     return prisma.subscription.create({ data, include: { plan: true } });
   }
 
-  async updateSubscription(id: string, data: Prisma.SubscriptionUpdateInput) {
+  async updateSubscription(id: string, data: any /* Prisma.SubscriptionUpdateInput */) {
     return prisma.subscription.update({ where: { id }, data });
   }
 
@@ -136,7 +136,7 @@ export class OrganizationRepository {
     });
   }
 
-  // ─── Organization Config ───
+  // â”€â”€â”€ Organization Config â”€â”€â”€
   async getConfigs(tenantId: string, module?: string) {
     const where: Prisma.OrganizationConfigWhereInput = { tenantId };
     if (module) where.module = module;
@@ -155,7 +155,7 @@ export class OrganizationRepository {
     return prisma.organizationConfig.deleteMany({ where: { tenantId, module, key } });
   }
 
-  // ─── Feature Flags ───
+  // â”€â”€â”€ Feature Flags â”€â”€â”€
   async getFeatures(tenantId: string) {
     return prisma.featureFlag.findMany({ where: { tenantId } });
   }
@@ -168,7 +168,7 @@ export class OrganizationRepository {
     });
   }
 
-  // ─── Organization Admin Users ───
+  // â”€â”€â”€ Organization Admin Users â”€â”€â”€
   async getOrgAdmins(tenantId: string) {
     return prisma.user.findMany({
       where: {
@@ -184,7 +184,7 @@ export class OrganizationRepository {
     });
   }
 
-  // ─── Usage Stats ───
+  // â”€â”€â”€ Usage Stats â”€â”€â”€
   async getUsageStats(tenantId: string) {
     const [users, students, teachers, institutions] = await Promise.all([
       prisma.user.count({ where: { tenantId, deletedAt: null } }),

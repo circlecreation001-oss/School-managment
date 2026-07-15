@@ -1,4 +1,4 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 
 export const createHomeworkSchema = z.object({
   classId: z.string().min(1),
@@ -38,4 +38,4 @@ export type CreateHomeworkInput = z.infer<typeof createHomeworkSchema>;
 export type UpdateHomeworkInput = z.infer<typeof updateHomeworkSchema>;
 export type SubmitHomeworkInput = z.infer<typeof submitHomeworkSchema>;
 export type ReviewSubmissionInput = z.infer<typeof reviewSubmissionSchema>;
-export type HomeworkListQuery = z.infer<typeof homeworkListQuerySchema>;
+export type HomeworkListQuery = z.output<typeof homeworkListQuerySchema>;

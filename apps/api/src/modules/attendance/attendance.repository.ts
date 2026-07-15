@@ -1,9 +1,9 @@
-import { prisma } from '@erp/database';
+﻿import { prisma } from '@erp/database';
 import type { Prisma } from '@erp/database';
 
 export class AttendanceRepository {
-  // ─── Student Attendance ───
-  async markStudentAttendance(data: Prisma.AttendanceUncheckedCreateInput) {
+  // â”€â”€â”€ Student Attendance â”€â”€â”€
+  async markStudentAttendance(data: any /* Prisma.AttendanceUncheckedCreateInput */) {
     return prisma.attendance.upsert({
       where: { student_date_unique: { studentId: data.studentId!, attendanceDate: data.attendanceDate } },
       update: { status: data.status, remarks: data.remarks, markedBy: data.markedBy },
@@ -36,8 +36,8 @@ export class AttendanceRepository {
     });
   }
 
-  // ─── Teacher Attendance ───
-  async markTeacherAttendance(data: Prisma.AttendanceUncheckedCreateInput) {
+  // â”€â”€â”€ Teacher Attendance â”€â”€â”€
+  async markTeacherAttendance(data: any /* Prisma.AttendanceUncheckedCreateInput */) {
     return prisma.attendance.upsert({
       where: { teacher_date_unique: { teacherId: data.teacherId!, attendanceDate: data.attendanceDate } },
       update: { status: data.status, remarks: data.remarks, markedBy: data.markedBy },
@@ -60,8 +60,8 @@ export class AttendanceRepository {
     });
   }
 
-  // ─── Staff Attendance ───
-  async markStaffAttendance(data: Prisma.AttendanceUncheckedCreateInput) {
+  // â”€â”€â”€ Staff Attendance â”€â”€â”€
+  async markStaffAttendance(data: any /* Prisma.AttendanceUncheckedCreateInput */) {
     return prisma.attendance.upsert({
       where: { staff_date_unique: { staffId: data.staffId!, attendanceDate: data.attendanceDate } },
       update: { status: data.status, remarks: data.remarks, markedBy: data.markedBy },
@@ -76,7 +76,7 @@ export class AttendanceRepository {
     });
   }
 
-  // ─── Analytics ───
+  // â”€â”€â”€ Analytics â”€â”€â”€
   async getAttendanceStats(tenantId: string, branchId: string, startDate: Date, endDate: Date, classId?: string) {
     const where: Prisma.AttendanceWhereInput = {
       tenantId, branchId, studentId: { not: null },
@@ -120,7 +120,7 @@ export class AttendanceRepository {
     });
   }
 
-  // ─── Holidays ───
+  // â”€â”€â”€ Holidays â”€â”€â”€
   async getHolidays(tenantId: string, branchId: string | null, startDate: Date, endDate: Date) {
     const where: Prisma.HolidayWhereInput = { tenantId, date: { gte: startDate, lte: endDate } };
     if (branchId) where.OR = [{ branchId }, { branchId: null }];

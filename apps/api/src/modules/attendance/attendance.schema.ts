@@ -1,6 +1,6 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 
-// ─── Mark Attendance (bulk for a class) ───
+// â”€â”€â”€ Mark Attendance (bulk for a class) â”€â”€â”€
 export const markBulkAttendanceSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD'),
   classId: z.string().min(1),
@@ -12,14 +12,14 @@ export const markBulkAttendanceSchema = z.object({
   })).min(1).max(200),
 });
 
-// ─── Mark Single Student ───
+// â”€â”€â”€ Mark Single Student â”€â”€â”€
 export const markSingleAttendanceSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   status: z.enum(['present', 'absent', 'late', 'half_day', 'leave']),
   remarks: z.string().max(200).optional(),
 });
 
-// ─── Teacher / Staff Attendance ───
+// â”€â”€â”€ Teacher / Staff Attendance â”€â”€â”€
 export const markTeacherAttendanceSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   records: z.array(z.object({
@@ -38,7 +38,7 @@ export const markStaffAttendanceSchema = z.object({
   })).min(1).max(100),
 });
 
-// ─── QR / Biometric check-in ───
+// â”€â”€â”€ QR / Biometric check-in â”€â”€â”€
 export const qrCheckInSchema = z.object({
   studentId: z.string().optional(),
   teacherId: z.string().optional(),
@@ -47,7 +47,7 @@ export const qrCheckInSchema = z.object({
   timestamp: z.string().datetime().optional(),
 });
 
-// ─── Query schemas ───
+// â”€â”€â”€ Query schemas â”€â”€â”€
 export const dailyAttendanceQuerySchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   classId: z.string().optional(),
@@ -75,6 +75,6 @@ export type MarkSingleAttendanceInput = z.infer<typeof markSingleAttendanceSchem
 export type MarkTeacherAttendanceInput = z.infer<typeof markTeacherAttendanceSchema>;
 export type MarkStaffAttendanceInput = z.infer<typeof markStaffAttendanceSchema>;
 export type QrCheckInInput = z.infer<typeof qrCheckInSchema>;
-export type DailyAttendanceQuery = z.infer<typeof dailyAttendanceQuerySchema>;
-export type MonthlyReportQuery = z.infer<typeof monthlyReportQuerySchema>;
-export type AnalyticsQuery = z.infer<typeof analyticsQuerySchema>;
+export type DailyAttendanceQuery = z.output<typeof dailyAttendanceQuerySchema>;
+export type MonthlyReportQuery = z.output<typeof monthlyReportQuerySchema>;
+export type AnalyticsQuery = z.output<typeof analyticsQuerySchema>;

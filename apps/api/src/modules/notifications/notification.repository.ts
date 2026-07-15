@@ -1,9 +1,9 @@
-import { prisma } from '@erp/database';
+﻿import { prisma } from '@erp/database';
 import type { Prisma } from '@erp/database';
 
 export class NotificationRepository {
-  // ─── Notifications ───
-  async create(data: Prisma.NotificationUncheckedCreateInput) {
+  // â”€â”€â”€ Notifications â”€â”€â”€
+  async create(data: any /* Prisma.NotificationUncheckedCreateInput */) {
     return prisma.notification.create({ data });
   }
 
@@ -16,7 +16,7 @@ export class NotificationRepository {
   }
 
   async list(tenantId: string, params: {
-    page: number; limit: number; channel?: string; status?: string; recipientId?: string;
+    page?: number; limit?: number; channel?: string; status?: string; recipientId?: string;
   }) {
     const where: Prisma.NotificationWhereInput = { tenantId };
     if (params.channel) where.channel = params.channel as any;
@@ -27,8 +27,8 @@ export class NotificationRepository {
       prisma.notification.findMany({
         where,
         include: { recipient: { select: { firstName: true, lastName: true, email: true } } },
-        skip: (params.page - 1) * params.limit,
-        take: params.limit,
+        skip: ((params.page || 1) - 1) * (params.limit || 20),
+        take: params.limit || 20,
         orderBy: { createdAt: 'desc' },
       }),
       prisma.notification.count({ where }),
@@ -60,7 +60,7 @@ export class NotificationRepository {
   }
 
   async updateStatus(id: string, status: string, failReason?: string) {
-    const data: Prisma.NotificationUpdateInput = { status: status as any };
+    const data: any /* Prisma.NotificationUpdateInput */ = { status: status as any };
     if (status === 'sent') data.sentAt = new Date();
     if (status === 'failed') { data.failedAt = new Date(); data.failReason = failReason; }
     return prisma.notification.update({ where: { id }, data });
@@ -70,7 +70,7 @@ export class NotificationRepository {
     return prisma.notification.update({ where: { id }, data: { retryCount: { increment: 1 } } });
   }
 
-  // ─── Templates ───
+  // â”€â”€â”€ Templates â”€â”€â”€
   async listTemplates(tenantId: string, channel?: string) {
     const where: Prisma.NotificationTemplateWhereInput = { tenantId };
     if (channel) where.channel = channel as any;
@@ -81,11 +81,11 @@ export class NotificationRepository {
     return prisma.notificationTemplate.findFirst({ where: { tenantId, code, channel: channel as any } });
   }
 
-  async createTemplate(data: Prisma.NotificationTemplateUncheckedCreateInput) {
+  async createTemplate(data: any /* Prisma.NotificationTemplateUncheckedCreateInput */) {
     return prisma.notificationTemplate.create({ data });
   }
 
-  async updateTemplate(id: string, data: Prisma.NotificationTemplateUpdateInput) {
+  async updateTemplate(id: string, data: any /* Prisma.NotificationTemplateUpdateInput */) {
     return prisma.notificationTemplate.update({ where: { id }, data });
   }
 
@@ -93,7 +93,7 @@ export class NotificationRepository {
     return prisma.notificationTemplate.delete({ where: { id } });
   }
 
-  // ─── Delivery Stats ───
+  // â”€â”€â”€ Delivery Stats â”€â”€â”€
   async getDeliveryStats(tenantId: string, startDate: Date, endDate: Date) {
     const where: Prisma.NotificationWhereInput = { tenantId, createdAt: { gte: startDate, lte: endDate } };
     const [total, sent, delivered, failed, byChannel] = await Promise.all([

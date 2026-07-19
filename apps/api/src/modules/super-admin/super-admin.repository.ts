@@ -171,7 +171,7 @@ export class SuperAdminRepository {
     return { data, total };
   }
 
-  async updateUserStatus(userId: string, status: string) {
+  async updateUserStatus(userId: string, status: any) {
     return prisma.user.update({ where: { id: userId }, data: { status } });
   }
 

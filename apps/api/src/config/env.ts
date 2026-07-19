@@ -17,6 +17,16 @@ console.log('JWT_ACCESS_SECRET loaded:', !!process.env.JWT_ACCESS_SECRET);
 console.log('JWT_REFRESH_SECRET loaded:', !!process.env.JWT_REFRESH_SECRET);
 console.log('ENCRYPTION_KEY loaded:', !!process.env.ENCRYPTION_KEY);
 
+// Log DB connection info (without password)
+if (process.env.DATABASE_URL) {
+  try {
+    const dbUrl = new URL(process.env.DATABASE_URL);
+    console.log(`DATABASE_URL target: ${dbUrl.username}@${dbUrl.hostname}:${dbUrl.port}${dbUrl.pathname}${dbUrl.search}`);
+  } catch {
+    console.log('DATABASE_URL format: non-URL or invalid');
+  }
+}
+
 // ─── Production Validation ───
 if (isProduction) {
   const required = ['DATABASE_URL', 'REDIS_URL', 'JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET', 'ENCRYPTION_KEY'];

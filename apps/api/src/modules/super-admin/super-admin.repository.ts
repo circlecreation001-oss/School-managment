@@ -1,4 +1,4 @@
-﻿import { prisma } from '@erp/database';
+﻿import { prisma, EntityStatus } from '@erp/database';
 import type { Prisma } from '@erp/database';
 
 export class SuperAdminRepository {
@@ -171,7 +171,7 @@ export class SuperAdminRepository {
     return { data, total };
   }
 
-  async updateUserStatus(userId: string, status: any) {
+  async updateUserStatus(userId: string, status: EntityStatus) {
     return prisma.user.update({ where: { id: userId }, data: { status } });
   }
 

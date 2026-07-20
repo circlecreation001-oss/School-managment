@@ -1,5 +1,6 @@
-﻿import { prisma, EntityStatus } from '@erp/database';
+﻿import { prisma } from '@erp/database';
 import type { Prisma } from '@erp/database';
+import { EntityStatus } from '@prisma/client';
 
 export class SuperAdminRepository {
   // â”€â”€â”€ Dashboard Stats â”€â”€â”€

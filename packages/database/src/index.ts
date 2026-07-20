@@ -14,23 +14,3 @@ if (process.env.NODE_ENV !== 'production') {
 
 export { PrismaClient };
 export type { Prisma } from '@prisma/client';
-export {
-  EntityStatus,
-  TenantStatus,
-  Gender,
-  AttendanceStatus,
-  LeaveStatus,
-  PaymentStatus,
-  PaymentMethod,
-  InvoiceStatus,
-  ExamStatus,
-  ResultStatus,
-  HomeworkStatus,
-  SubmissionStatus,
-  NotificationChannel,
-  NotificationStatus,
-  BookIssueStatus,
-  AdmissionStatus,
-  StudentStatus,
-  TeacherStatus,
-} from '@prisma/client';

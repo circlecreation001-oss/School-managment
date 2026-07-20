@@ -2,25 +2,17 @@
   "name": "@erp/database",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
-  "main": "./dist/index.js",
+  "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "default": "./dist/index.js",
-      "types": "./src/index.ts"
-    }
+    ".": "./src/index.ts"
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm --out-dir dist --clean --external @prisma/client",
+    "postinstall": "prisma generate --schema=prisma/schema.prisma || true",
     "generate": "prisma generate --schema=prisma/schema.prisma",
     "migrate": "prisma migrate dev --schema=prisma/schema.prisma",
     "push": "prisma db push --schema=prisma/schema.prisma",
     "studio": "prisma studio --schema=prisma/schema.prisma",
-    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} seed/index.ts"
-  },
-  "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} seed/index.ts"
   },
   "dependencies": {
@@ -31,7 +23,6 @@
     "@types/bcryptjs": "^2.4.6",
     "prisma": "^5.17.0",
     "ts-node": "^10.9.2",
-    "tsup": "^8.5.1",
     "typescript": "^5.5.0"
   }
 }

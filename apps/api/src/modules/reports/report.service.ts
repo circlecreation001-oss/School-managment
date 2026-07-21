@@ -1,10 +1,10 @@
-import { logger } from '../../config/index.js';
+﻿import { logger } from '../../config/index.js';
 import { prisma } from '@erp/database';
 import { reportRepository } from './report.repository.js';
 import type { AttendanceReportInput, FeeReportInput, StudentReportInput, ExportInput } from './report.schema.js';
 
 export class ReportService {
-  // ─── DASHBOARD ───
+  // â”€â”€â”€ DASHBOARD â”€â”€â”€
   async getDashboardAnalytics(tenantId: string, branchId?: string) {
     const kpis = await reportRepository.getDashboardKPIs(tenantId, branchId);
     const today = new Date();
@@ -13,7 +13,7 @@ export class ReportService {
     return { kpis, revenueTrend: revenue };
   }
 
-  // ─── ATTENDANCE ───
+  // â”€â”€â”€ ATTENDANCE â”€â”€â”€
   async getAttendanceReport(tenantId: string, input: AttendanceReportInput) {
     const startDate = new Date(input.startDate);
     const endDate = new Date(input.endDate);
@@ -31,7 +31,7 @@ export class ReportService {
     return { summary, trend: Object.entries(dailyData).map(([date, statuses]) => ({ date, ...statuses })) };
   }
 
-  // ─── FEES ───
+  // â”€â”€â”€ FEES â”€â”€â”€
   async getFeeReport(tenantId: string, input: FeeReportInput) {
     return reportRepository.getFeeReport(tenantId, new Date(input.startDate), new Date(input.endDate), input.classId, input.status);
   }
@@ -40,29 +40,29 @@ export class ReportService {
     return reportRepository.getRevenueTrend(tenantId, year);
   }
 
-  // ─── STUDENTS ───
+  // â”€â”€â”€ STUDENTS â”€â”€â”€
   async getStudentReport(tenantId: string, branchId: string, input: StudentReportInput) {
     return reportRepository.getStudentReport(tenantId, branchId, input.classId, input.status, input.gender);
   }
 
-  // ─── TEACHERS ───
+  // â”€â”€â”€ TEACHERS â”€â”€â”€
   async getTeacherReport(tenantId: string, branchId: string) {
     return reportRepository.getTeacherReport(tenantId, branchId);
   }
 
-  // ─── EXAM RESULTS ───
+  // â”€â”€â”€ EXAM RESULTS â”€â”€â”€
   async getExamResultsReport(tenantId: string, sessionId: string, classId?: string) {
     return reportRepository.getExamResultsReport(tenantId, sessionId, classId);
   }
 
-  // ─── EXPORT ───
+  // â”€â”€â”€ EXPORT â”€â”€â”€
   async generateExport(tenantId: string, input: ExportInput, actorId: string) {
     // In production, this would queue a job to generate the file
     // and return a download URL once ready
     logger.info({ tenantId, reportType: input.reportType, format: input.format, actorId }, 'Export requested');
 
     await prisma.auditLog.create({
-      data: { tenantId, actorUserId: actorId, entityType: 'report', action: 'export', metadata: { reportType: input.reportType, format: input.format } },
+      data: { tenantId, actorUserId: actorId, entityType: 'report', action: 'export', metadata: { reportType: input.reportType, format: input.format } as any },
     });
 
     return {

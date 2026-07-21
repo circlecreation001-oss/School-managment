@@ -1,4 +1,4 @@
-import { AppError } from '../../utils/errors.js';
+﻿import { AppError } from '../../utils/errors.js';
 import { logger, notificationQueue, emitToUser } from '../../config/index.js';
 import { prisma } from '@erp/database';
 import { notificationRepository } from './notification.repository.js';
@@ -9,11 +9,11 @@ import type {
 } from './notification.schema.js';
 
 export class NotificationService {
-  // ─── SEND ───
+  // â”€â”€â”€ SEND â”€â”€â”€
   async send(tenantId: string, input: SendNotificationInput, actorId: string) {
     const notifications = input.recipientIds.map((recipientId) => ({
       tenantId, recipientId, channel: input.channel as any, subject: input.subject,
-      body: input.body, data: input.data, entityType: input.entityType, entityId: input.entityId,
+      body: input.body, data: (input.data as any), entityType: input.entityType, entityId: input.entityId,
       status: 'queued' as const,
     }));
 
@@ -23,7 +23,7 @@ export class NotificationService {
     for (const recipientId of input.recipientIds) {
       await notificationQueue.add('send', {
         tenantId, recipientId, channel: input.channel,
-        subject: input.subject, body: input.body, data: input.data,
+        subject: input.subject, body: input.body, data: (input.data as any),
       });
 
       // Real-time for in_app
@@ -36,7 +36,7 @@ export class NotificationService {
     return { queued: input.recipientIds.length, channel: input.channel };
   }
 
-  // ─── SEND FROM TEMPLATE ───
+  // â”€â”€â”€ SEND FROM TEMPLATE â”€â”€â”€
   async sendFromTemplate(tenantId: string, input: SendFromTemplateInput, actorId: string) {
     const template = await notificationRepository.findTemplateByCode(tenantId, input.templateCode, 'email');
     if (!template) {
@@ -61,7 +61,7 @@ export class NotificationService {
     }, actorId);
   }
 
-  // ─── BROADCAST ───
+  // â”€â”€â”€ BROADCAST â”€â”€â”€
   async broadcast(tenantId: string, branchId: string, input: BroadcastInput, actorId: string) {
     let recipientIds: string[] = [];
 
@@ -93,7 +93,7 @@ export class NotificationService {
     return this.send(tenantId, { recipientIds, channel: input.channel, subject: input.subject, body: input.body }, actorId);
   }
 
-  // ─── SCHEDULE ───
+  // â”€â”€â”€ SCHEDULE â”€â”€â”€
   async schedule(tenantId: string, input: ScheduleNotificationInput, actorId: string) {
     const delay = new Date(input.scheduledAt).getTime() - Date.now();
     if (delay < 0) throw new AppError(400, 'BAD_REQUEST', 'Scheduled time must be in the future');
@@ -108,7 +108,7 @@ export class NotificationService {
     return { scheduled: input.recipientIds.length, scheduledAt: input.scheduledAt };
   }
 
-  // ─── USER NOTIFICATIONS ───
+  // â”€â”€â”€ USER NOTIFICATIONS â”€â”€â”€
   async getUserNotifications(userId: string) {
     return notificationRepository.getUserNotifications(userId);
   }
@@ -129,14 +129,14 @@ export class NotificationService {
     return { message: 'All notifications marked as read' };
   }
 
-  // ─── ADMIN: LIST ALL ───
+  // â”€â”€â”€ ADMIN: LIST ALL â”€â”€â”€
   async listAll(tenantId: string, query: NotificationListQuery) {
     const { data, total } = await notificationRepository.list(tenantId, query);
     const meta = buildPaginationMeta(total, query.page, query.limit);
     return { data, meta };
   }
 
-  // ─── TEMPLATES ───
+  // â”€â”€â”€ TEMPLATES â”€â”€â”€
   async listTemplates(tenantId: string, channel?: string) {
     return notificationRepository.listTemplates(tenantId, channel);
   }
@@ -164,7 +164,7 @@ export class NotificationService {
     return { message: 'Template deleted' };
   }
 
-  // ─── DELIVERY STATS ───
+  // â”€â”€â”€ DELIVERY STATS â”€â”€â”€
   async getDeliveryStats(tenantId: string, startDate: string, endDate: string) {
     return notificationRepository.getDeliveryStats(tenantId, new Date(startDate), new Date(endDate));
   }

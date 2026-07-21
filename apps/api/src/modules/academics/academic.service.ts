@@ -1,4 +1,4 @@
-import { AppError } from '../../utils/errors.js';
+﻿import { AppError } from '../../utils/errors.js';
 import { logger } from '../../config/index.js';
 import { prisma } from '@erp/database';
 import { academicRepository } from './academic.repository.js';
@@ -10,7 +10,7 @@ import type {
 } from './academic.schema.js';
 
 export class AcademicService {
-  // ─── SESSIONS ───
+  // â”€â”€â”€ SESSIONS â”€â”€â”€
   async listSessions(tenantId: string) { return academicRepository.listSessions(tenantId); }
 
   async createSession(tenantId: string, input: CreateSessionInput, actorId: string) {
@@ -43,7 +43,7 @@ export class AcademicService {
     return { message: 'Current session updated' };
   }
 
-  // ─── DEPARTMENTS ───
+  // â”€â”€â”€ DEPARTMENTS â”€â”€â”€
   async listDepartments(tenantId: string, branchId: string) { return academicRepository.listDepartments(tenantId, branchId); }
 
   async createDepartment(tenantId: string, branchId: string, input: CreateDepartmentInput, actorId: string) {
@@ -68,10 +68,10 @@ export class AcademicService {
     return { message: 'Department deleted' };
   }
 
-  // ─── COURSES ───
+  // â”€â”€â”€ COURSES â”€â”€â”€
   async listCourses(tenantId: string, branchId: string) { return academicRepository.listCourses(tenantId, branchId); }
   async createCourse(tenantId: string, branchId: string, input: CreateCourseInput, actorId: string) {
-    const course = await academicRepository.createCourse({ tenantId, branchId, ...input });
+    const course = await academicRepository.createCourse({ tenantId, branchId, ...input } as any);
     await this.audit(tenantId, actorId, 'course', course.id, 'create');
     return course;
   }
@@ -90,7 +90,7 @@ export class AcademicService {
     return { message: 'Course deleted' };
   }
 
-  // ─── CLASSES ───
+  // â”€â”€â”€ CLASSES â”€â”€â”€
   async listClasses(tenantId: string, branchId: string, sessionId?: string) { return academicRepository.listClasses(tenantId, branchId, sessionId); }
   async getClass(tenantId: string, id: string) {
     const cls = await academicRepository.getClass(id);
@@ -98,7 +98,7 @@ export class AcademicService {
     return cls;
   }
   async createClass(tenantId: string, branchId: string, input: CreateClassInput, actorId: string) {
-    const cls = await academicRepository.createClass({ tenantId, branchId, ...input });
+    const cls = await academicRepository.createClass({ tenantId, branchId, ...input } as any);
     await this.audit(tenantId, actorId, 'class', cls.id, 'create');
     return cls;
   }
@@ -115,13 +115,13 @@ export class AcademicService {
     return { message: 'Class deleted' };
   }
 
-  // ─── SECTIONS ───
+  // â”€â”€â”€ SECTIONS â”€â”€â”€
   async listSections(tenantId: string, classId: string) {
     await this.getClass(tenantId, classId);
     return academicRepository.listSections(classId);
   }
   async createSection(tenantId: string, branchId: string, input: CreateSectionInput, actorId: string) {
-    const section = await academicRepository.createSection({ tenantId, branchId, ...input });
+    const section = await academicRepository.createSection({ tenantId, branchId, ...input } as any);
     await this.audit(tenantId, actorId, 'section', section.id, 'create');
     return section;
   }
@@ -140,10 +140,10 @@ export class AcademicService {
     return { message: 'Section deleted' };
   }
 
-  // ─── SUBJECTS ───
+  // â”€â”€â”€ SUBJECTS â”€â”€â”€
   async listSubjects(tenantId: string, branchId: string, classId?: string) { return academicRepository.listSubjects(tenantId, branchId, classId); }
   async createSubject(tenantId: string, branchId: string, input: CreateSubjectInput, actorId: string) {
-    const subject = await academicRepository.createSubject({ tenantId, branchId, ...input });
+    const subject = await academicRepository.createSubject({ tenantId, branchId, ...input } as any);
     await this.audit(tenantId, actorId, 'subject', subject.id, 'create');
     return subject;
   }
@@ -162,7 +162,7 @@ export class AcademicService {
     return { message: 'Subject deleted' };
   }
 
-  // ─── SUBJECT GROUPS ───
+  // â”€â”€â”€ SUBJECT GROUPS â”€â”€â”€
   async listSubjectGroups(tenantId: string, classId: string) { return academicRepository.listSubjectGroups(tenantId, classId); }
   async createSubjectGroup(tenantId: string, branchId: string, input: CreateSubjectGroupInput, actorId: string) {
     const group = await academicRepository.createSubjectGroup({ tenantId, branchId, classId: input.classId, name: input.name }, input.subjectIds);
@@ -175,25 +175,25 @@ export class AcademicService {
     return { message: 'Subject group deleted' };
   }
 
-  // ─── TEACHER ASSIGNMENTS ───
+  // â”€â”€â”€ TEACHER ASSIGNMENTS â”€â”€â”€
   async assignClassTeacher(tenantId: string, branchId: string, input: AssignClassTeacherInput, actorId: string) {
-    const result = await academicRepository.assignClassTeacher({ tenantId, branchId, ...input });
+    const result = await academicRepository.assignClassTeacher({ tenantId, branchId, ...input } as any);
     await this.audit(tenantId, actorId, 'class_teacher', result.id, 'assign');
     return result;
   }
   async listClassTeachers(tenantId: string, branchId: string) { return academicRepository.listClassTeachers(tenantId, branchId); }
 
   async assignSubjectTeacher(tenantId: string, branchId: string, input: AssignSubjectTeacherInput, actorId: string) {
-    const result = await academicRepository.assignSubjectTeacher({ tenantId, branchId, ...input });
+    const result = await academicRepository.assignSubjectTeacher({ tenantId, branchId, ...input } as any);
     await this.audit(tenantId, actorId, 'subject_teacher', result.id, 'assign');
     return result;
   }
   async listSubjectTeachers(tenantId: string, classId: string) { return academicRepository.listSubjectTeachers(tenantId, classId); }
 
-  // ─── PROMOTION RULES ───
+  // â”€â”€â”€ PROMOTION RULES â”€â”€â”€
   async listPromotionRules(tenantId: string, branchId: string) { return academicRepository.listPromotionRules(tenantId, branchId); }
   async createPromotionRule(tenantId: string, branchId: string, input: CreatePromotionRuleInput, actorId: string) {
-    const rule = await academicRepository.createPromotionRule({ tenantId, branchId, ...input });
+    const rule = await academicRepository.createPromotionRule({ tenantId, branchId, ...input } as any);
     await this.audit(tenantId, actorId, 'promotion_rule', rule.id, 'create');
     return rule;
   }
@@ -203,7 +203,7 @@ export class AcademicService {
     return { message: 'Promotion rule deleted' };
   }
 
-  // ─── CALENDAR ───
+  // â”€â”€â”€ CALENDAR â”€â”€â”€
   async listCalendarEvents(tenantId: string, branchId: string, params?: { startDate?: string; endDate?: string; eventType?: string }) {
     return academicRepository.listCalendarEvents(tenantId, branchId, {
       startDate: params?.startDate ? new Date(params.startDate) : undefined,
@@ -239,7 +239,7 @@ export class AcademicService {
     return { message: 'Event deleted' };
   }
 
-  // ─── PRIVATE ───
+  // â”€â”€â”€ PRIVATE â”€â”€â”€
   private async audit(tenantId: string, actorId: string, entityType: string, entityId: string | null, action: string) {
     await prisma.auditLog.create({ data: { tenantId, actorUserId: actorId, entityType, entityId, action } });
   }

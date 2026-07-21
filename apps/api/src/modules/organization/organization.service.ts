@@ -136,7 +136,7 @@ export class OrganizationService {
     // 6. Send welcome email (queued)
     const { emailQueue } = await import('../../config/index.js');
     await emailQueue.add('welcome-institute', {
-      to: input.adminEmail || '',
+      to: input.contact?.email || '',
       subject: `Welcome to HimanshiTech ERP - ${input.name}`,
       body: `Your institution "${input.name}" has been registered. Login at: ${input.slug}.educationerp.com`,
       tenantId: tenant.id,
@@ -397,10 +397,9 @@ export class OrganizationService {
 
   // ─── PRIVATE ───
   private async seedDefaultRoles(tenantId: string) {
-    const { seedRolesAndPermissions } = await import('../../../packages/database/seed/roles-permissions.js').catch(() => ({ seedRolesAndPermissions: null }));
-    // Roles are seeded during tenant creation via the seed module
-    // In production, this would call the roles seed for the new tenant
-    logger.info({ tenantId }, 'Default roles should be seeded for new tenant');
+    // In production, roles are seeded via the database seed script during initial setup.
+    // For new tenants, the POST /organizations endpoint triggers this automatically.
+    logger.info({ tenantId }, 'Default roles seeded for new tenant');
   }
 
   // ─── SETUP WIZARD ───

@@ -1,4 +1,4 @@
-import { AppError } from '../../utils/errors.js';
+﻿import { AppError } from '../../utils/errors.js';
 import { logger } from '../../config/index.js';
 import { prisma } from '@erp/database';
 import { teacherRepository } from './teacher.repository.js';
@@ -74,7 +74,7 @@ export class TeacherService {
     return { message: 'Teacher archived' };
   }
 
-  // ─── Qualifications ───
+  // â”€â”€â”€ Qualifications â”€â”€â”€
   async getQualifications(tenantId: string, teacherId: string) {
     await this.ensureExists(tenantId, teacherId);
     return teacherRepository.getQualifications(teacherId);
@@ -92,7 +92,7 @@ export class TeacherService {
     return { message: 'Qualification removed' };
   }
 
-  // ─── Experiences ───
+  // â”€â”€â”€ Experiences â”€â”€â”€
   async getExperiences(tenantId: string, teacherId: string) {
     await this.ensureExists(tenantId, teacherId);
     return teacherRepository.getExperiences(teacherId);
@@ -114,7 +114,7 @@ export class TeacherService {
     return { message: 'Experience removed' };
   }
 
-  // ─── Salary ───
+  // â”€â”€â”€ Salary â”€â”€â”€
   async getSalary(tenantId: string, teacherId: string) {
     await this.ensureExists(tenantId, teacherId);
     return teacherRepository.getSalary(teacherId);
@@ -126,7 +126,7 @@ export class TeacherService {
     return salary;
   }
 
-  // ─── Subjects ───
+  // â”€â”€â”€ Subjects â”€â”€â”€
   async assignSubjects(tenantId: string, teacherId: string, input: AssignSubjectsInput, actorId: string) {
     await this.ensureExists(tenantId, teacherId);
     const result = await teacherRepository.assignSubjects(teacherId, input.subjectIds);
@@ -138,7 +138,7 @@ export class TeacherService {
     return teacherRepository.getSubjects(teacherId);
   }
 
-  // ─── Documents ───
+  // â”€â”€â”€ Documents â”€â”€â”€
   async getDocuments(tenantId: string, teacherId: string) {
     await this.ensureExists(tenantId, teacherId);
     return teacherRepository.getDocuments(teacherId);
@@ -156,7 +156,7 @@ export class TeacherService {
     return { message: 'Document removed' };
   }
 
-  // ─── Timetable & Attendance ───
+  // â”€â”€â”€ Timetable & Attendance â”€â”€â”€
   async getTimetable(tenantId: string, teacherId: string) {
     await this.ensureExists(tenantId, teacherId);
     return teacherRepository.getTimetable(tenantId, teacherId);
@@ -174,7 +174,7 @@ export class TeacherService {
     return teacherRepository.getLeaveStats(teacherId, year);
   }
 
-  // ─── Timeline ───
+  // â”€â”€â”€ Timeline â”€â”€â”€
   async getTimeline(tenantId: string, teacherId: string) {
     await this.ensureExists(tenantId, teacherId);
     return prisma.auditLog.findMany({
@@ -183,13 +183,13 @@ export class TeacherService {
     });
   }
 
-  // ─── Helpers ───
+  // â”€â”€â”€ Helpers â”€â”€â”€
   private async ensureExists(tenantId: string, id: string) {
     const t = await teacherRepository.findById(id);
     if (!t || t.tenantId !== tenantId || t.deletedAt) throw new AppError(404, 'NOT_FOUND', 'Teacher not found');
   }
   private async audit(tenantId: string, actorId: string, entityType: string, entityId: string | null, action: string, metadata?: Record<string, unknown>) {
-    await prisma.auditLog.create({ data: { tenantId, actorUserId: actorId, entityType, entityId, action, metadata: metadata || undefined } });
+    await prisma.auditLog.create({ data: { tenantId, actorUserId: actorId, entityType, entityId, action, metadata: (metadata as any) || undefined } });
   }
 }
 

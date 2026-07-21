@@ -1,4 +1,4 @@
-import { AppError } from '../../utils/errors.js';
+﻿import { AppError } from '../../utils/errors.js';
 import { logger } from '../../config/index.js';
 import { prisma } from '@erp/database';
 import { websiteRepository } from './website.repository.js';
@@ -6,7 +6,7 @@ import { buildPaginationMeta } from '@erp/utils';
 import type { CreatePageInput, UpdatePageInput, CreateBlogPostInput, UpdateBlogPostInput, CreateGalleryItemInput, CreateEnquiryInput, BlogListQuery } from './website.schema.js';
 
 export class WebsiteService {
-  // ─── PAGES ───
+  // â”€â”€â”€ PAGES â”€â”€â”€
   async listPages(tenantId: string, pageType?: string, isPublished?: boolean) {
     return websiteRepository.listPages(tenantId, pageType, isPublished);
   }
@@ -41,7 +41,7 @@ export class WebsiteService {
     return { message: 'Page deleted' };
   }
 
-  // ─── BLOG ───
+  // â”€â”€â”€ BLOG â”€â”€â”€
   async listBlogPosts(tenantId: string, query: BlogListQuery) {
     const { data, total } = await websiteRepository.listBlogPosts(tenantId, query);
     const meta = buildPaginationMeta(total, query.page, query.limit);
@@ -84,7 +84,7 @@ export class WebsiteService {
 
   async getBlogCategories(tenantId: string) { return websiteRepository.getBlogCategories(tenantId); }
 
-  // ─── GALLERY ───
+  // â”€â”€â”€ GALLERY â”€â”€â”€
   async listGallery(tenantId: string, category?: string) {
     return websiteRepository.listGalleryItems(tenantId, category);
   }
@@ -103,7 +103,7 @@ export class WebsiteService {
 
   async getGalleryCategories(tenantId: string) { return websiteRepository.getGalleryCategories(tenantId); }
 
-  // ─── ENQUIRIES ───
+  // â”€â”€â”€ ENQUIRIES â”€â”€â”€
   async listEnquiries(tenantId: string, status?: string) {
     return websiteRepository.listEnquiries(tenantId, status);
   }
@@ -120,9 +120,9 @@ export class WebsiteService {
     return { message: 'Enquiry status updated' };
   }
 
-  // ─── PRIVATE ───
+  // â”€â”€â”€ PRIVATE â”€â”€â”€
   private async audit(tenantId: string, actorId: string, entityType: string, entityId: string, action: string, metadata?: Record<string, unknown>) {
-    await prisma.auditLog.create({ data: { tenantId, actorUserId: actorId, entityType, entityId, action, metadata: metadata || undefined } });
+    await prisma.auditLog.create({ data: { tenantId, actorUserId: actorId, entityType, entityId, action, metadata: (metadata as any) || undefined } });
   }
 }
 

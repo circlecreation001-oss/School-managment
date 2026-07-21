@@ -1,4 +1,4 @@
-import { AppError } from '../../utils/errors.js';
+﻿import { AppError } from '../../utils/errors.js';
 import { logger } from '../../config/index.js';
 import { prisma } from '@erp/database';
 import { feeRepository } from './fee.repository.js';
@@ -10,7 +10,7 @@ import type {
 } from './fee.schema.js';
 
 export class FeeService {
-  // ─── CATEGORIES ───
+  // â”€â”€â”€ CATEGORIES â”€â”€â”€
   async listCategories(tenantId: string) { return feeRepository.listCategories(tenantId); }
   async createCategory(tenantId: string, input: CreateFeeCategoryInput, actorId: string) {
     const cat = await feeRepository.createCategory({ tenantId, ...input });
@@ -28,7 +28,7 @@ export class FeeService {
     return { message: 'Fee category deleted' };
   }
 
-  // ─── STRUCTURES ───
+  // â”€â”€â”€ STRUCTURES â”€â”€â”€
   async listStructures(tenantId: string, branchId: string, sessionId?: string) {
     return feeRepository.listStructures(tenantId, branchId, sessionId);
   }
@@ -43,7 +43,7 @@ export class FeeService {
     return structure;
   }
 
-  // ─── INVOICES ───
+  // â”€â”€â”€ INVOICES â”€â”€â”€
   async listInvoices(tenantId: string, query: FeeListQuery) {
     const { data, total } = await feeRepository.listInvoices(tenantId, {
       ...query, startDate: query.startDate ? new Date(query.startDate) : undefined,
@@ -102,7 +102,7 @@ export class FeeService {
     return { generated, classId: input.classId };
   }
 
-  // ─── PAYMENTS ───
+  // â”€â”€â”€ PAYMENTS â”€â”€â”€
   async recordPayment(tenantId: string, input: RecordPaymentInput, actorId: string) {
     const invoice = await feeRepository.getInvoice(input.invoiceId);
     if (!invoice || invoice.tenantId !== tenantId) throw new AppError(404, 'NOT_FOUND', 'Invoice not found');
@@ -133,7 +133,7 @@ export class FeeService {
     return payment;
   }
 
-  // ─── DISCOUNTS ───
+  // â”€â”€â”€ DISCOUNTS â”€â”€â”€
   async applyDiscount(tenantId: string, input: ApplyDiscountInput, actorId: string) {
     const invoice = await feeRepository.getInvoice(input.invoiceId);
     if (!invoice || invoice.tenantId !== tenantId) throw new AppError(404, 'NOT_FOUND', 'Invoice not found');
@@ -156,7 +156,7 @@ export class FeeService {
     return discount;
   }
 
-  // ─── SCHOLARSHIPS ───
+  // â”€â”€â”€ SCHOLARSHIPS â”€â”€â”€
   async applyScholarship(tenantId: string, input: ApplyScholarshipInput, actorId: string) {
     const invoice = await feeRepository.getInvoice(input.invoiceId);
     if (!invoice || invoice.tenantId !== tenantId) throw new AppError(404, 'NOT_FOUND', 'Invoice not found');
@@ -173,7 +173,7 @@ export class FeeService {
     return scholarship;
   }
 
-  // ─── REFUND ───
+  // â”€â”€â”€ REFUND â”€â”€â”€
   async processRefund(tenantId: string, input: ProcessRefundInput, actorId: string) {
     const payment = await feeRepository.getPayment(input.paymentId);
     if (!payment || payment.tenantId !== tenantId) throw new AppError(404, 'NOT_FOUND', 'Payment not found');
@@ -193,7 +193,7 @@ export class FeeService {
     return { message: 'Refund processed' };
   }
 
-  // ─── REPORTS ───
+  // â”€â”€â”€ REPORTS â”€â”€â”€
   async getDueReport(tenantId: string, classId?: string) { return feeRepository.getDueReport(tenantId, classId); }
 
   async getCollectionSummary(tenantId: string, startDate: string, endDate: string) {
@@ -204,9 +204,9 @@ export class FeeService {
 
   async getStudentLedger(tenantId: string, studentId: string) { return feeRepository.getStudentLedger(tenantId, studentId); }
 
-  // ─── PRIVATE ───
+  // â”€â”€â”€ PRIVATE â”€â”€â”€
   private async audit(tenantId: string, actorId: string, entityType: string, entityId: string | null, action: string, metadata?: Record<string, unknown>) {
-    await prisma.auditLog.create({ data: { tenantId, actorUserId: actorId, entityType, entityId, action, metadata: metadata || undefined } });
+    await prisma.auditLog.create({ data: { tenantId, actorUserId: actorId, entityType, entityId, action, metadata: (metadata as any) || undefined } });
   }
 }
 

@@ -1,4 +1,4 @@
-import { AppError } from '../../utils/errors.js';
+﻿import { AppError } from '../../utils/errors.js';
 import { logger } from '../../config/index.js';
 import { prisma } from '@erp/database';
 import { examRepository } from './exam.repository.js';
@@ -6,7 +6,7 @@ import { buildPaginationMeta } from '@erp/utils';
 import type { CreateExamInput, CreateExamScheduleInput, EnterMarksInput, CreateGradeInput, ExamListQuery } from './exam.schema.js';
 
 export class ExamService {
-  // ─── EXAMS ───
+  // â”€â”€â”€ EXAMS â”€â”€â”€
   async listExams(tenantId: string, branchId: string, query: ExamListQuery) {
     const { data, total } = await examRepository.listExams(tenantId, branchId, query);
     const meta = buildPaginationMeta(total, query.page, query.limit);
@@ -65,7 +65,7 @@ export class ExamService {
     return { message: 'Exam cancelled' };
   }
 
-  // ─── MARKS ENTRY ───
+  // â”€â”€â”€ MARKS ENTRY â”€â”€â”€
   async enterMarks(tenantId: string, input: EnterMarksInput, actorId: string) {
     const exam = await examRepository.getExam(input.examId);
     if (!exam || exam.tenantId !== tenantId) throw new AppError(404, 'NOT_FOUND', 'Exam not found');
@@ -94,7 +94,7 @@ export class ExamService {
     return { entered, examId: input.examId };
   }
 
-  // ─── PUBLISH ───
+  // â”€â”€â”€ PUBLISH â”€â”€â”€
   async publishResults(tenantId: string, examId: string, actorId: string) {
     const exam = await examRepository.getExam(examId);
     if (!exam || exam.tenantId !== tenantId) throw new AppError(404, 'NOT_FOUND', 'Exam not found');
@@ -105,7 +105,7 @@ export class ExamService {
     return { message: 'Results published' };
   }
 
-  // ─── RESULTS ───
+  // â”€â”€â”€ RESULTS â”€â”€â”€
   async getResults(tenantId: string, params: { examId?: string; studentId?: string; classId?: string; status?: string }) {
     return examRepository.getResults(tenantId, params);
   }
@@ -114,7 +114,7 @@ export class ExamService {
     return examRepository.getStudentResults(tenantId, studentId, sessionId);
   }
 
-  // ─── GRADES ───
+  // â”€â”€â”€ GRADES â”€â”€â”€
   async listGrades(tenantId: string) { return examRepository.listGrades(tenantId); }
   async createGrade(tenantId: string, input: CreateGradeInput, actorId: string) {
     const grade = await examRepository.createGrade({ tenantId, ...input });
@@ -127,7 +127,7 @@ export class ExamService {
     return { message: 'Grade deleted' };
   }
 
-  // ─── ANALYTICS ───
+  // â”€â”€â”€ ANALYTICS â”€â”€â”€
   async getExamAnalytics(tenantId: string, examId: string) {
     return examRepository.getExamAnalytics(tenantId, examId);
   }
@@ -136,7 +136,7 @@ export class ExamService {
     return examRepository.getClassPerformance(tenantId, classId, sessionId);
   }
 
-  // ─── REPORT CARD ───
+  // â”€â”€â”€ REPORT CARD â”€â”€â”€
   async getReportCard(tenantId: string, studentId: string, sessionId: string) {
     const data = await examRepository.getReportCardData(tenantId, studentId, sessionId);
     if (!data.student) throw new AppError(404, 'NOT_FOUND', 'Student not found');
@@ -152,9 +152,9 @@ export class ExamService {
     return { ...data, totalMarks, obtainedMarks, percentage, gpa };
   }
 
-  // ─── PRIVATE ───
+  // â”€â”€â”€ PRIVATE â”€â”€â”€
   private async audit(tenantId: string, actorId: string, entityType: string, entityId: string | null, action: string, metadata?: Record<string, unknown>) {
-    await prisma.auditLog.create({ data: { tenantId, actorUserId: actorId, entityType, entityId, action, metadata: metadata || undefined } });
+    await prisma.auditLog.create({ data: { tenantId, actorUserId: actorId, entityType, entityId, action, metadata: (metadata as any) || undefined } });
   }
 }
 

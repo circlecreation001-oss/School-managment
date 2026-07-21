@@ -1,4 +1,4 @@
-import { AppError } from '../../utils/errors.js';
+﻿import { AppError } from '../../utils/errors.js';
 import { logger } from '../../config/index.js';
 import { prisma } from '@erp/database';
 import { libraryRepository } from './library.repository.js';
@@ -6,7 +6,7 @@ import { buildPaginationMeta } from '@erp/utils';
 import type { CreateBookInput, UpdateBookInput, IssueBookInput, ReturnBookInput, CollectFineInput, BookListQuery, IssueListQuery } from './library.schema.js';
 
 export class LibraryService {
-  // ─── BOOKS ───
+  // â”€â”€â”€ BOOKS â”€â”€â”€
   async listBooks(tenantId: string, query: BookListQuery) {
     const { data, total } = await libraryRepository.listBooks(tenantId, query);
     const meta = buildPaginationMeta(total, query.page, query.limit);
@@ -47,7 +47,7 @@ export class LibraryService {
     return book;
   }
 
-  // ─── ISSUE ───
+  // â”€â”€â”€ ISSUE â”€â”€â”€
   async issueBook(tenantId: string, input: IssueBookInput, actorId: string) {
     const book = await this.getBook(tenantId, input.bookId);
     if (book.availableCopies <= 0) throw new AppError(400, 'BAD_REQUEST', 'No copies available for issue');
@@ -67,7 +67,7 @@ export class LibraryService {
     return issue;
   }
 
-  // ─── RETURN ───
+  // â”€â”€â”€ RETURN â”€â”€â”€
   async returnBook(tenantId: string, input: ReturnBookInput, actorId: string) {
     const issue = await libraryRepository.getIssue(input.issueId);
     if (!issue || issue.tenantId !== tenantId) throw new AppError(404, 'NOT_FOUND', 'Issue record not found');
@@ -86,7 +86,7 @@ export class LibraryService {
     let fine = 0;
     if (today > dueDate) {
       const overdueDays = Math.ceil((today.getTime() - dueDate.getTime()) / 86400000);
-      fine = overdueDays * 2; // ₹2/day default fine
+      fine = overdueDays * 2; // â‚¹2/day default fine
     }
     if (input.condition === 'lost') fine += 500; // Replacement charge
     if (input.condition === 'damaged') fine += 100; // Damage charge
@@ -99,7 +99,7 @@ export class LibraryService {
     return { issueId: input.issueId, status, fine, condition: input.condition };
   }
 
-  // ─── FINE ───
+  // â”€â”€â”€ FINE â”€â”€â”€
   async collectFine(tenantId: string, input: CollectFineInput, actorId: string) {
     const issue = await libraryRepository.getIssue(input.issueId);
     if (!issue || issue.tenantId !== tenantId) throw new AppError(404, 'NOT_FOUND', 'Issue not found');
@@ -108,21 +108,21 @@ export class LibraryService {
     return { message: 'Fine collected', amount: input.amount };
   }
 
-  // ─── ISSUES LIST ───
+  // â”€â”€â”€ ISSUES LIST â”€â”€â”€
   async listIssues(tenantId: string, query: IssueListQuery) {
     const { data, total } = await libraryRepository.listIssues(tenantId, query);
     const meta = buildPaginationMeta(total, query.page, query.limit);
     return { data, meta };
   }
 
-  // ─── REPORTS ───
+  // â”€â”€â”€ REPORTS â”€â”€â”€
   async getInventoryStats(tenantId: string) { return libraryRepository.getInventoryStats(tenantId); }
   async getOverdueList(tenantId: string) { return libraryRepository.getOverdueIssues(tenantId); }
   async getMostIssued(tenantId: string) { return libraryRepository.getMostIssuedBooks(tenantId); }
 
-  // ─── PRIVATE ───
+  // â”€â”€â”€ PRIVATE â”€â”€â”€
   private async audit(tenantId: string, actorId: string, entityType: string, entityId: string | null, action: string, metadata?: Record<string, unknown>) {
-    await prisma.auditLog.create({ data: { tenantId, actorUserId: actorId, entityType, entityId, action, metadata: metadata || undefined } });
+    await prisma.auditLog.create({ data: { tenantId, actorUserId: actorId, entityType, entityId, action, metadata: (metadata as any) || undefined } });
   }
 }
 

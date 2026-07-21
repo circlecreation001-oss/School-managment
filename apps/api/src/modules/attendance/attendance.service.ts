@@ -1,4 +1,4 @@
-import { AppError } from '../../utils/errors.js';
+﻿import { AppError } from '../../utils/errors.js';
 import { logger } from '../../config/index.js';
 import { prisma } from '@erp/database';
 import { attendanceRepository } from './attendance.repository.js';
@@ -8,7 +8,7 @@ import type {
 } from './attendance.schema.js';
 
 export class AttendanceService {
-  // ─── MARK STUDENT ATTENDANCE (Bulk) ───
+  // â”€â”€â”€ MARK STUDENT ATTENDANCE (Bulk) â”€â”€â”€
   async markBulkStudentAttendance(tenantId: string, branchId: string, input: MarkBulkAttendanceInput, actorId: string) {
     const date = new Date(input.date);
 
@@ -31,7 +31,7 @@ export class AttendanceService {
     return { marked, date: input.date, classId: input.classId };
   }
 
-  // ─── MARK SINGLE STUDENT ───
+  // â”€â”€â”€ MARK SINGLE STUDENT â”€â”€â”€
   async markSingleStudent(tenantId: string, branchId: string, studentId: string, input: MarkSingleAttendanceInput, actorId: string) {
     const date = new Date(input.date);
     const isHoliday = await attendanceRepository.isHoliday(tenantId, branchId, date);
@@ -50,7 +50,7 @@ export class AttendanceService {
     return { studentId, date: input.date, status: input.status };
   }
 
-  // ─── MARK TEACHER ATTENDANCE ───
+  // â”€â”€â”€ MARK TEACHER ATTENDANCE â”€â”€â”€
   async markTeacherAttendance(tenantId: string, branchId: string, input: MarkTeacherAttendanceInput, actorId: string) {
     const date = new Date(input.date);
     let marked = 0;
@@ -66,7 +66,7 @@ export class AttendanceService {
     return { marked, date: input.date };
   }
 
-  // ─── MARK STAFF ATTENDANCE ───
+  // â”€â”€â”€ MARK STAFF ATTENDANCE â”€â”€â”€
   async markStaffAttendance(tenantId: string, branchId: string, input: MarkStaffAttendanceInput, actorId: string) {
     const date = new Date(input.date);
     let marked = 0;
@@ -82,7 +82,7 @@ export class AttendanceService {
     return { marked, date: input.date };
   }
 
-  // ─── QR / BIOMETRIC CHECK-IN ───
+  // â”€â”€â”€ QR / BIOMETRIC CHECK-IN â”€â”€â”€
   async qrCheckIn(tenantId: string, branchId: string, input: QrCheckInInput, actorId: string) {
     const today = new Date(); today.setHours(0, 0, 0, 0);
 
@@ -112,7 +112,7 @@ export class AttendanceService {
     throw new AppError(400, 'BAD_REQUEST', 'One of studentId, teacherId, or staffId is required');
   }
 
-  // ─── QUERIES ───
+  // â”€â”€â”€ QUERIES â”€â”€â”€
   async getDailyStudentAttendance(tenantId: string, branchId: string, query: DailyAttendanceQuery) {
     const date = new Date(query.date);
     return attendanceRepository.getStudentDailyAttendance(tenantId, branchId, date, query.classId, query.sectionId);
@@ -126,7 +126,7 @@ export class AttendanceService {
     return attendanceRepository.getStaffDailyAttendance(tenantId, branchId, new Date(date));
   }
 
-  // ─── MONTHLY REPORT ───
+  // â”€â”€â”€ MONTHLY REPORT â”€â”€â”€
   async getMonthlyReport(tenantId: string, branchId: string, query: MonthlyReportQuery) {
     const startDate = new Date(query.year, query.month - 1, 1);
     const endDate = new Date(query.year, query.month, 0);
@@ -143,7 +143,7 @@ export class AttendanceService {
     throw new AppError(400, 'BAD_REQUEST', 'Specify classId, studentId, or teacherId');
   }
 
-  // ─── ANALYTICS ───
+  // â”€â”€â”€ ANALYTICS â”€â”€â”€
   async getAnalytics(tenantId: string, branchId: string, query: AnalyticsQuery) {
     const startDate = new Date(query.startDate);
     const endDate = new Date(query.endDate);
@@ -152,21 +152,21 @@ export class AttendanceService {
     return { stats, trend };
   }
 
-  // ─── ABSENTEES ───
+  // â”€â”€â”€ ABSENTEES â”€â”€â”€
   async getAbsentees(tenantId: string, branchId: string, date: string, classId?: string) {
     return attendanceRepository.getAbsentees(tenantId, branchId, new Date(date), classId);
   }
 
-  // ─── HOLIDAYS ───
+  // â”€â”€â”€ HOLIDAYS â”€â”€â”€
   async getHolidays(tenantId: string, branchId: string, month: number, year: number) {
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0);
     return attendanceRepository.getHolidays(tenantId, branchId, startDate, endDate);
   }
 
-  // ─── PRIVATE ───
+  // â”€â”€â”€ PRIVATE â”€â”€â”€
   private async audit(tenantId: string, actorId: string, entityType: string, entityId: string | null, action: string, metadata?: Record<string, unknown>) {
-    await prisma.auditLog.create({ data: { tenantId, actorUserId: actorId, entityType, entityId, action, metadata: metadata || undefined } });
+    await prisma.auditLog.create({ data: { tenantId, actorUserId: actorId, entityType, entityId, action, metadata: (metadata as any) || undefined } });
   }
 }
 

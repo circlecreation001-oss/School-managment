@@ -249,7 +249,7 @@ export class UserService {
   // ─── PRIVATE ───
   private async audit(tenantId: string, actorId: string, entityType: string, entityId: string | null, action: string, metadata?: Record<string, unknown>) {
     await prisma.auditLog.create({
-      data: { tenantId, actorUserId: actorId, entityType, entityId, action, metadata: metadata || undefined },
+      data: { tenantId, actorUserId: actorId, entityType, entityId, action, metadata: (metadata as any) || undefined },
     });
   }
 }

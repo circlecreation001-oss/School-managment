@@ -25,7 +25,7 @@ export class UserRepository {
   }) {
     const where: Prisma.UserWhereInput = { tenantId, deletedAt: null };
 
-    if (params.status) where.status = params.status;
+    if (params.status) where.status = params.status as any;
     if (params.search) {
       where.OR = [
         { firstName: { contains: params.search, mode: 'insensitive' } },
@@ -158,7 +158,7 @@ export class UserRepository {
 
   async exportUsers(tenantId: string, filters?: { status?: string; roleCode?: string }) {
     const where: Prisma.UserWhereInput = { tenantId, deletedAt: null };
-    if (filters?.status) where.status = filters.status;
+    if (filters?.status) where.status = filters.status as any;
     if (filters?.roleCode) {
       where.userRoles = { some: { role: { code: filters.roleCode } } };
     }

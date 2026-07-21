@@ -99,7 +99,7 @@ export class WebsiteRepository {
   // â”€â”€â”€ Contact Enquiries â”€â”€â”€
   async listEnquiries(tenantId: string, status?: string) {
     const where: Prisma.ContactEnquiryWhereInput = { tenantId };
-    if (status) where.status = status;
+    if (status) where.status = status as any;
     return prisma.contactEnquiry.findMany({ where, orderBy: { createdAt: 'desc' }, take: 100 });
   }
 

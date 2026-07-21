@@ -51,7 +51,7 @@ export class LibraryRepository {
     if (params.status) where.status = params.status as any;
     if (params.studentId) where.studentId = params.studentId;
     if (params.teacherId) where.teacherId = params.teacherId;
-    if (params.overdue) { where.status = 'issued'; where.dueDate = { lt: new Date() }; }
+    if (params.overdue) { where.status = 'issued' as any; where.dueDate = { lt: new Date() }; }
 
     const [data, total] = await Promise.all([
       prisma.bookIssue.findMany({

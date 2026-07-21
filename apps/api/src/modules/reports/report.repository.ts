@@ -1,7 +1,7 @@
-import { prisma } from '@erp/database';
+﻿import { prisma } from '@erp/database';
 
 export class ReportRepository {
-  // ─── Dashboard KPIs ───
+  // â”€â”€â”€ Dashboard KPIs â”€â”€â”€
   async getDashboardKPIs(tenantId: string, branchId?: string) {
     const studentWhere = { tenantId, deletedAt: null, status: 'active' as const, ...(branchId ? { branchId } : {}) };
     const teacherWhere = { tenantId, deletedAt: null, status: 'active' as const, ...(branchId ? { branchId } : {}) };
@@ -23,7 +23,7 @@ export class ReportRepository {
     };
   }
 
-  // ─── Attendance Report ───
+  // â”€â”€â”€ Attendance Report â”€â”€â”€
   async getAttendanceReport(tenantId: string, startDate: Date, endDate: Date, classId?: string, type = 'student') {
     const isStudent = type === 'student';
     const where: any = { tenantId, attendanceDate: { gte: startDate, lte: endDate } };
@@ -51,10 +51,10 @@ export class ReportRepository {
     });
   }
 
-  // ─── Fee Report ───
+  // â”€â”€â”€ Fee Report â”€â”€â”€
   async getFeeReport(tenantId: string, startDate: Date, endDate: Date, classId?: string, status?: string) {
     const where: any = { tenantId, deletedAt: null, createdAt: { gte: startDate, lte: endDate } };
-    if (status) where.status = status;
+    if (status) where.status = status as any;
 
     const [invoices, totals, payments] = await Promise.all([
       prisma.invoice.aggregate({ where, _sum: { totalAmount: true, paidAmount: true, outstandingAmount: true }, _count: { id: true } }),
@@ -87,11 +87,11 @@ export class ReportRepository {
     return Object.entries(monthly).map(([month, amount]) => ({ month, amount })).sort((a, b) => a.month.localeCompare(b.month));
   }
 
-  // ─── Student Report ───
+  // â”€â”€â”€ Student Report â”€â”€â”€
   async getStudentReport(tenantId: string, branchId: string, classId?: string, status?: string, gender?: string) {
     const where: any = { tenantId, branchId, deletedAt: null };
     if (classId) where.classId = classId;
-    if (status) where.status = status;
+    if (status) where.status = status as any;
     if (gender) where.gender = gender;
 
     const [total, byStatus, byGender, byClass] = await Promise.all([
@@ -109,7 +109,7 @@ export class ReportRepository {
     };
   }
 
-  // ─── Teacher Report ───
+  // â”€â”€â”€ Teacher Report â”€â”€â”€
   async getTeacherReport(tenantId: string, branchId: string) {
     const [total, byStatus, byDepartment] = await Promise.all([
       prisma.teacher.count({ where: { tenantId, branchId, deletedAt: null } }),
@@ -123,7 +123,7 @@ export class ReportRepository {
     };
   }
 
-  // ─── Exam Results Report ───
+  // â”€â”€â”€ Exam Results Report â”€â”€â”€
   async getExamResultsReport(tenantId: string, sessionId: string, classId?: string) {
     const where: any = { tenantId, deletedAt: null, status: 'published', exam: { academicSessionId: sessionId } };
     if (classId) where.exam.classId = classId;

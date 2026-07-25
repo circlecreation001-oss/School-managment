@@ -1,5 +1,5 @@
 ﻿# Production Deployment Guide
-## HimanshiTech Education ERP
+## SchoolNex
 
 ---
 

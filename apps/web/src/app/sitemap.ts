@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://educationerp.com';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://schoolnex.in';
 
   return [
     { url: `${baseUrl}/home`, lastModified: new Date(), changeFrequency: 'weekly', priority: 1 },

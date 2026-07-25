@@ -3,24 +3,28 @@ import { AuthProvider } from '@/providers/auth-provider';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: { default: 'HimanshiTech Education ERP', template: '%s | Education ERP' },
-  description: 'Complete School Management System — Admissions, Attendance, Fees, Exams, Library, and more for every institute.',
-  keywords: ['school management', 'education erp', 'school software', 'attendance', 'fee management', 'exam management', 'student portal'],
-  authors: [{ name: 'HimanshiTech' }],
+  title: { default: 'SchoolNex — Complete School Management ERP', template: '%s | SchoolNex' },
+  description: 'SchoolNex is a cloud-based School Management ERP by Circle Creation. Manage admissions, attendance, fees, exams, library, and more for schools, colleges & coaching institutes.',
+  keywords: ['school management software', 'school erp', 'education erp', 'schoolnex', 'attendance management', 'fee management', 'exam management', 'student portal', 'circle creation'],
+  authors: [{ name: 'Shivam Kumar', url: 'https://schoolnex.in' }],
+  creator: 'Circle Creation',
+  publisher: 'Circle Creation',
   openGraph: {
     type: 'website',
     locale: 'en_IN',
-    siteName: 'HimanshiTech Education ERP',
-    title: 'HimanshiTech Education ERP — Complete School Management',
-    description: 'One platform to manage admissions, attendance, fees, exams, and more for schools, colleges, and coaching institutes.',
+    url: 'https://schoolnex.in',
+    siteName: 'SchoolNex',
+    title: 'SchoolNex — Complete School Management ERP Software',
+    description: 'One platform to manage admissions, attendance, fees, exams, and more. Built for schools, colleges, and coaching institutes by Circle Creation.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'HimanshiTech Education ERP',
-    description: 'Complete School Management System for modern institutions.',
+    title: 'SchoolNex — School Management ERP',
+    description: 'Complete School Management Software for modern educational institutions.',
+    creator: '@circlecreation',
   },
   robots: { index: true, follow: true },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://educationerp.com'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://schoolnex.in'),
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

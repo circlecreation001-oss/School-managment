@@ -1,8 +1,8 @@
 {
-  "name": "education-erp",
+  "name": "schoolnex",
   "version": "0.1.0",
   "private": true,
-  "description": "Enterprise White-Label Education ERP + Website SaaS Platform",
+  "description": "SchoolNex - Complete School Management ERP by Circle Creation",
   "scripts": {
     "dev:api": "npm run dev --workspace=apps/api",
     "dev:web": "npm run dev --workspace=apps/web",

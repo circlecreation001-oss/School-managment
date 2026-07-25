@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -61,15 +61,15 @@ export default function LoginPage() {
               <span className="text-2xl font-black text-white">H</span>
             </div>
             <div>
-              <h1 className="text-xl font-bold">HimanshiTech</h1>
-              <p className="text-blue-200 text-sm">Education ERP</p>
+              <h1 className="text-xl font-bold">Circle Creation</h1>
+              <p className="text-blue-200 text-sm">SchoolNex</p>
             </div>
           </div>
           <h2 className="text-4xl font-bold leading-tight mb-4">
             Complete School Management Platform
           </h2>
           <p className="text-blue-100 text-lg leading-relaxed mb-8">
-            One platform to manage admissions, attendance, fees, exams, communication, and more — for every role in your institution.
+            One platform to manage admissions, attendance, fees, exams, communication, and more â€” for every role in your institution.
           </p>
           <div className="grid grid-cols-2 gap-3">
             {['Students', 'Teachers', 'Parents', 'Finance', 'Library', 'HR'].map((item) => (
@@ -90,7 +90,7 @@ export default function LoginPage() {
             <div className="h-9 w-9 rounded-xl bg-blue-600 flex items-center justify-center">
               <span className="text-white font-bold text-sm">H</span>
             </div>
-            <span className="text-xl font-bold text-slate-900 dark:text-white">HimanshiTech ERP</span>
+            <span className="text-xl font-bold text-slate-900 dark:text-white">Circle Creation ERP</span>
           </div>
 
           <div className="mb-8">
@@ -178,12 +178,12 @@ export default function LoginPage() {
           <div className="mt-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-4">
             <p className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">Supported login methods:</p>
             <div className="grid grid-cols-2 gap-1 text-xs text-slate-500 dark:text-slate-400">
-              <span>✓ Email + Password</span>
-              <span>✓ Username + Password</span>
-              <span>✓ Admission No. (Students)</span>
-              <span>✓ Employee ID (Teachers)</span>
-              <span>✓ Mobile No. (Parents)</span>
-              <span>✓ Any registered ID</span>
+              <span>âœ“ Email + Password</span>
+              <span>âœ“ Username + Password</span>
+              <span>âœ“ Admission No. (Students)</span>
+              <span>âœ“ Employee ID (Teachers)</span>
+              <span>âœ“ Mobile No. (Parents)</span>
+              <span>âœ“ Any registered ID</span>
             </div>
           </div>
         </div>

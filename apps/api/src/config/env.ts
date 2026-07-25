@@ -1,7 +1,7 @@
-import dotenv from 'dotenv';
+﻿import dotenv from 'dotenv';
 import path from 'path';
 
-// Load .env file (development only — Render injects env vars directly)
+// Load .env file (development only â€” Render injects env vars directly)
 if (process.env.NODE_ENV !== 'production') {
   dotenv.config({ path: path.resolve(process.cwd(), '.env') });
   dotenv.config({ path: path.resolve(process.cwd(), '../../.env') });
@@ -9,7 +9,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-// ─── Startup Logs ───
+// â”€â”€â”€ Startup Logs â”€â”€â”€
 console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('DATABASE_URL loaded:', !!process.env.DATABASE_URL);
 console.log('REDIS_URL loaded:', !!process.env.REDIS_URL);
@@ -27,7 +27,7 @@ if (process.env.DATABASE_URL) {
   }
 }
 
-// ─── Production Validation ───
+// â”€â”€â”€ Production Validation â”€â”€â”€
 if (isProduction) {
   const required = ['DATABASE_URL', 'REDIS_URL', 'JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET', 'ENCRYPTION_KEY'];
   const missing = required.filter((key) => !process.env[key]);
@@ -41,16 +41,16 @@ if (isProduction) {
 export const env = {
   // Application
   nodeEnv: process.env.NODE_ENV || 'development',
-  appName: process.env.APP_NAME || 'EducationERP',
+  appName: process.env.APP_NAME || 'SchoolNex',
   appUrl: process.env.APP_URL || (isProduction ? '' : 'http://localhost:3000'),
   apiUrl: process.env.API_URL || (isProduction ? '' : 'http://localhost:4000'),
   apiPort: parseInt(process.env.API_PORT || '4000', 10),
   apiPrefix: process.env.API_PREFIX || '/api/v1',
 
-  // Database — use DATABASE_URL directly, no localhost fallback in production
+  // Database â€” use DATABASE_URL directly, no localhost fallback in production
   databaseUrl: process.env.DATABASE_URL || '',
 
-  // Redis — use REDIS_URL directly, no localhost fallback in production
+  // Redis â€” use REDIS_URL directly, no localhost fallback in production
   redisUrl: process.env.REDIS_URL || (isProduction ? '' : 'redis://localhost:6379'),
   redisHost: process.env.REDIS_HOST || (isProduction ? '' : 'localhost'),
   redisPort: parseInt(process.env.REDIS_PORT || '6379', 10),
@@ -75,7 +75,7 @@ export const env = {
   smtpPort: parseInt(process.env.SMTP_PORT || (isProduction ? '465' : '1025'), 10),
   smtpUser: process.env.SMTP_USER || '',
   smtpPass: process.env.SMTP_PASS || '',
-  smtpFromName: process.env.SMTP_FROM_NAME || 'Education ERP',
+  smtpFromName: process.env.SMTP_FROM_NAME || 'SchoolNex',
   smtpFromEmail: process.env.SMTP_FROM_EMAIL || 'noreply@educationerp.com',
 
   // Logging

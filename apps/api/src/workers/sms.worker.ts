@@ -58,7 +58,7 @@ export async function processSmsJob(job: Job<SmsJobData>): Promise<void> {
 }
 
 async function sendViaTwilio(phone: string, body: string): Promise<void> {
-  // Twilio integration — requires TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM
+  // Twilio integration â€” requires TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
   const authToken = process.env.TWILIO_AUTH_TOKEN;
   const from = process.env.TWILIO_FROM_NUMBER;
@@ -87,7 +87,7 @@ async function sendViaTwilio(phone: string, body: string): Promise<void> {
 
 async function sendViaMsg91(phone: string, body: string): Promise<void> {
   const apiKey = process.env.SMS_API_KEY;
-  const senderId = process.env.SMS_SENDER_ID || 'EDUERP';
+  const senderId = process.env.SMS_SENDER_ID || 'SCHNEX';
 
   if (!apiKey) {
     logger.warn('MSG91 API key not configured, falling back to console');

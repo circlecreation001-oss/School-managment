@@ -5,22 +5,22 @@ import { seedSuperAdmin } from './super-admin';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.info('🌱 Starting database seed...\n');
+  console.info('ðŸŒ± Starting database seed...\n');
 
   // 1. Seed default tenant
   const tenant = await seedDefaultTenant();
-  console.info('✅ Default tenant created');
+  console.info('âœ… Default tenant created');
 
   // 2. Seed roles and permissions
   await seedRolesAndPermissions(prisma, tenant.id);
-  console.info('✅ Roles and permissions seeded');
+  console.info('âœ… Roles and permissions seeded');
 
   // 3. Seed super admin user
   await seedSuperAdmin(prisma, tenant.id);
-  console.info('✅ Super admin user created');
+  console.info('âœ… Super admin user created');
 
-  console.info('\n🎉 Database seed completed successfully!');
-  console.info('   Login: admin@educationerp.com / Admin@123456');
+  console.info('\nðŸŽ‰ Database seed completed successfully!');
+  console.info('   Login: admin@schoolnex.in / Admin@123456');
 }
 
 async function seedDefaultTenant() {
@@ -41,7 +41,7 @@ async function seedDefaultTenant() {
           accentColor: '#7c3aed',
           timezone: 'Asia/Kolkata',
           currency: 'INR',
-          currencySymbol: '₹',
+          currencySymbol: 'â‚¹',
           language: 'en',
           dateFormat: 'DD/MM/YYYY',
         },
@@ -52,7 +52,7 @@ async function seedDefaultTenant() {
 
 main()
   .catch((e) => {
-    console.error('❌ Seed failed:', e);
+    console.error('âŒ Seed failed:', e);
     process.exit(1);
   })
   .finally(async () => {

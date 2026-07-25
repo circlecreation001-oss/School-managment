@@ -44,7 +44,7 @@ export function Sidebar({ isCollapsed, isMobileOpen, onCloseMobile }: SidebarPro
           </div>
           {!isCollapsed && (
             <span className="text-lg font-semibold text-slate-900 dark:text-slate-50 truncate">
-              EduERP
+              SchoolNex
             </span>
           )}
         </Link>

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -198,7 +198,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             </div>
           </div>
           <div className="mt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-slate-500">Â© {new Date().getFullYear()} SchoolNex by HimanshiTech. All rights reserved.</p>
+            <p className="text-xs text-slate-500">Â© {new Date().getFullYear()} SchoolNex by Circle Creation. All rights reserved.</p>
             <div className="flex items-center gap-6 text-xs text-slate-500">
               <Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link>
               <Link href="#" className="hover:text-white transition-colors">Terms & Conditions</Link>

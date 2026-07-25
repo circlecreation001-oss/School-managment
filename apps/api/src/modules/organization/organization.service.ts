@@ -10,7 +10,7 @@ import type {
 } from './organization.schema.js';
 
 export class OrganizationService {
-  // ─── LIST ───
+  // â”€â”€â”€ LIST â”€â”€â”€
   async list(params: {
     page: number; limit: number; search?: string;
     status?: string; sortBy?: string; sortOrder?: 'asc' | 'desc';
@@ -20,7 +20,7 @@ export class OrganizationService {
     return { data, meta };
   }
 
-  // ─── GET ───
+  // â”€â”€â”€ GET â”€â”€â”€
   async getById(id: string) {
     const org = await organizationRepository.findById(id);
     if (!org) throw new AppError(404, 'NOT_FOUND', 'Organization not found');
@@ -31,7 +31,7 @@ export class OrganizationService {
     return { ...org, subscription, usage };
   }
 
-  // ─── CREATE ───
+  // â”€â”€â”€ CREATE â”€â”€â”€
   async create(input: CreateOrganizationInput, actorId: string) {
     const slugAvailable = await organizationRepository.isSlugAvailable(input.slug);
     if (!slugAvailable) throw new AppError(409, 'CONFLICT', 'Organization slug is already taken');
@@ -63,7 +63,7 @@ export class OrganizationService {
       },
     });
 
-    // ─── FULL ONBOARDING: Seed everything for the new tenant ───
+    // â”€â”€â”€ FULL ONBOARDING: Seed everything for the new tenant â”€â”€â”€
 
     // 1. Seed roles & permissions
     await this.seedDefaultRoles(tenant.id);
@@ -137,8 +137,8 @@ export class OrganizationService {
     const { emailQueue } = await import('../../config/index.js');
     await emailQueue.add('welcome-institute', {
       to: input.contact?.email || '',
-      subject: `Welcome to HimanshiTech ERP - ${input.name}`,
-      body: `Your institution "${input.name}" has been registered. Login at: ${input.slug}.educationerp.com`,
+      subject: `Welcome to SchoolNex - ${input.name}`,
+      body: `Your institution "${input.name}" has been registered. Login at: ${input.slug}.schoolnex.in`,
       tenantId: tenant.id,
     });
 
@@ -146,7 +146,7 @@ export class OrganizationService {
     return tenant;
   }
 
-  // ─── UPDATE ───
+  // â”€â”€â”€ UPDATE â”€â”€â”€
   async update(id: string, input: UpdateOrganizationInput, actorId: string) {
     const existing = await organizationRepository.findById(id);
     if (!existing) throw new AppError(404, 'NOT_FOUND', 'Organization not found');
@@ -161,7 +161,7 @@ export class OrganizationService {
     return org;
   }
 
-  // ─── SUSPEND ───
+  // â”€â”€â”€ SUSPEND â”€â”€â”€
   async suspend(id: string, actorId: string) {
     const org = await organizationRepository.findById(id);
     if (!org) throw new AppError(404, 'NOT_FOUND', 'Organization not found');
@@ -172,7 +172,7 @@ export class OrganizationService {
     return updated;
   }
 
-  // ─── ACTIVATE ───
+  // â”€â”€â”€ ACTIVATE â”€â”€â”€
   async activate(id: string, actorId: string) {
     const org = await organizationRepository.findById(id);
     if (!org) throw new AppError(404, 'NOT_FOUND', 'Organization not found');
@@ -183,7 +183,7 @@ export class OrganizationService {
     return updated;
   }
 
-  // ─── SOFT DELETE ───
+  // â”€â”€â”€ SOFT DELETE â”€â”€â”€
   async delete(id: string, actorId: string) {
     const org = await organizationRepository.findById(id);
     if (!org) throw new AppError(404, 'NOT_FOUND', 'Organization not found');
@@ -193,7 +193,7 @@ export class OrganizationService {
     return { message: 'Organization archived successfully' };
   }
 
-  // ─── BRANDING ───
+  // â”€â”€â”€ BRANDING â”€â”€â”€
   async updateBranding(tenantId: string, input: UpdateBrandingInput, actorId: string) {
     const org = await organizationRepository.findById(tenantId);
     if (!org) throw new AppError(404, 'NOT_FOUND', 'Organization not found');
@@ -209,7 +209,7 @@ export class OrganizationService {
     return settings;
   }
 
-  // ─── SUBSCRIPTION ───
+  // â”€â”€â”€ SUBSCRIPTION â”€â”€â”€
   async assignSubscription(tenantId: string, input: AssignSubscriptionInput, actorId: string) {
     const org = await organizationRepository.findById(tenantId);
     if (!org) throw new AppError(404, 'NOT_FOUND', 'Organization not found');
@@ -266,7 +266,7 @@ export class OrganizationService {
     return { current: subscription, history };
   }
 
-  // ─── CONFIGS ───
+  // â”€â”€â”€ CONFIGS â”€â”€â”€
   async getConfigs(tenantId: string, module?: string) {
     return organizationRepository.getConfigs(tenantId, module);
   }
@@ -285,7 +285,7 @@ export class OrganizationService {
     return results;
   }
 
-  // ─── FEATURES ───
+  // â”€â”€â”€ FEATURES â”€â”€â”€
   async getFeatures(tenantId: string) {
     return organizationRepository.getFeatures(tenantId);
   }
@@ -304,7 +304,7 @@ export class OrganizationService {
     return results;
   }
 
-  // ─── ORGANIZATION ADMINS ───
+  // â”€â”€â”€ ORGANIZATION ADMINS â”€â”€â”€
   async getAdmins(tenantId: string) {
     return organizationRepository.getOrgAdmins(tenantId);
   }
@@ -344,7 +344,7 @@ export class OrganizationService {
     return { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName };
   }
 
-  // ─── PLANS ───
+  // â”€â”€â”€ PLANS â”€â”€â”€
   async listPlans() {
     return organizationRepository.listPlans(false);
   }
@@ -375,7 +375,7 @@ export class OrganizationService {
     return plan;
   }
 
-  // ─── USAGE ───
+  // â”€â”€â”€ USAGE â”€â”€â”€
   async getUsage(tenantId: string) {
     const org = await organizationRepository.findById(tenantId);
     if (!org) throw new AppError(404, 'NOT_FOUND', 'Organization not found');
@@ -395,14 +395,14 @@ export class OrganizationService {
     };
   }
 
-  // ─── PRIVATE ───
+  // â”€â”€â”€ PRIVATE â”€â”€â”€
   private async seedDefaultRoles(tenantId: string) {
     // In production, roles are seeded via the database seed script during initial setup.
     // For new tenants, the POST /organizations endpoint triggers this automatically.
     logger.info({ tenantId }, 'Default roles seeded for new tenant');
   }
 
-  // ─── SETUP WIZARD ───
+  // â”€â”€â”€ SETUP WIZARD â”€â”€â”€
   async completeSetup(tenantId: string, input: any, actorId: string) {
     const { prisma } = await import('@erp/database');
     const org = await organizationRepository.findById(tenantId);

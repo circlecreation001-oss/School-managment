@@ -1,4 +1,4 @@
-﻿import dotenv from 'dotenv';
+import dotenv from 'dotenv';
 import path from 'path';
 
 // Load .env file (development only â€” Render injects env vars directly)
@@ -76,7 +76,7 @@ export const env = {
   smtpUser: process.env.SMTP_USER || '',
   smtpPass: process.env.SMTP_PASS || '',
   smtpFromName: process.env.SMTP_FROM_NAME || 'SchoolNex',
-  smtpFromEmail: process.env.SMTP_FROM_EMAIL || 'noreply@educationerp.com',
+  smtpFromEmail: process.env.SMTP_FROM_EMAIL || 'noreply@schoolnex.in',
 
   // Logging
   logLevel: process.env.LOG_LEVEL || (isProduction ? 'info' : 'debug'),

@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
-const SUPER_ADMIN_EMAIL = 'admin@educationerp.com';
+const SUPER_ADMIN_EMAIL = 'admin@schoolnex.in';
 const SUPER_ADMIN_PASSWORD = 'Admin@123456';
 
 export async function seedSuperAdmin(prisma: PrismaClient, tenantId: string) {

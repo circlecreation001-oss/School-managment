@@ -56,7 +56,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             {/* Solutions Mega Menu */}
             <div className="relative" onMouseEnter={() => setMegaOpen('solutions')} onMouseLeave={() => setMegaOpen(null)}>
               <button className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${scrolled ? 'text-slate-600 hover:text-blue-600 hover:bg-blue-50' : 'text-white/80 hover:text-white'}`}>
-                Solutions <span className="text-[10px] ml-0.5">â–¼</span>
+                Solutions 
               </button>
               <AnimatePresence>
                 {megaOpen === 'solutions' && (
@@ -80,7 +80,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             {/* Resources Menu */}
             <div className="relative" onMouseEnter={() => setMegaOpen('resources')} onMouseLeave={() => setMegaOpen(null)}>
               <button className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${scrolled ? 'text-slate-600 hover:text-blue-600 hover:bg-blue-50' : 'text-white/80 hover:text-white'}`}>
-                Resources <span className="text-[10px] ml-0.5">â–¼</span>
+                Resources 
               </button>
               <AnimatePresence>
                 {megaOpen === 'resources' && (
@@ -97,8 +97,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
 
           <div className="hidden lg:flex items-center gap-3">
             <Link href="/login" className={`text-sm font-medium px-4 py-2 rounded-lg transition-all ${scrolled ? 'text-slate-700 hover:text-blue-600 hover:bg-blue-50' : 'text-white/90 hover:text-white hover:bg-white/10'}`}>
-              Login â†’
-            </Link>
+              Portal Login</Link>
             <Link href="/contact" className="text-sm font-semibold px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 hover:-translate-y-0.5 transition-all duration-300">
               Book Free Demo
             </Link>
@@ -130,7 +129,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                   <Link key={r.label} href={r.href} onClick={() => setMobileOpen(false)} className="block text-sm text-slate-600 py-2 px-3 rounded-lg hover:bg-slate-50">{r.label}</Link>
                 ))}
                 <div className="pt-3 space-y-2">
-                  <Link href="/login" onClick={() => setMobileOpen(false)} className="block text-center text-sm font-medium py-2.5 rounded-xl border border-slate-200 text-slate-700">Login â†’</Link>
+                  <Link href="/login" onClick={() => setMobileOpen(false)} className="block text-center text-sm font-medium py-2.5 rounded-xl border border-slate-200 text-slate-700">Portal Login</Link>
                   <Link href="/contact" onClick={() => setMobileOpen(false)} className="block text-center text-sm font-semibold px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white">Book Free Demo</Link>
                 </div>
               </div>
@@ -198,7 +197,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             </div>
           </div>
           <div className="mt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-slate-500">Â© {new Date().getFullYear()} SchoolNex by Circle Creation. All rights reserved.</p>
+            <p className="text-xs text-slate-500">Â  {new Date().getFullYear()} SchoolNex by Circle Creation. All rights reserved.</p>
             <div className="flex items-center gap-6 text-xs text-slate-500">
               <Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link>
               <Link href="#" className="hover:text-white transition-colors">Terms & Conditions</Link>

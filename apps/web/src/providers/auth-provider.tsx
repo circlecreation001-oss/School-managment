@@ -78,8 +78,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       return { success: false, error: res.error?.message || 'Login failed' };
-    } catch {
-      return { success: false, error: 'An unexpected error occurred' };
+    } catch (err: any) {
+      const message = err?.message || 'An unexpected error occurred';
+      if (message.includes('fetch') || message.includes('network') || message.includes('Failed')) {
+        return { success: false, error: 'Cannot connect to server. Please check your internet connection or try again later.' };
+      }
+      return { success: false, error: message };
     }
   }, []);
 

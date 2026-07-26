@@ -19,19 +19,53 @@ async function bootstrap(): Promise<void> {
     await prisma.$connect();
     logger.info('Database connected');
 
+    // Auto-seed Super Admin if not exists (first deployment)
+    await ensureSuperAdmin();
+
     // Start BullMQ workers
     startWorkers();
     logger.info('BullMQ workers initialized');
 
     // Start HTTP server
     server.listen(env.apiPort, () => {
-      logger.info(`🚀 API server running on port ${env.apiPort}`);
-      logger.info(`📋 Health check: ${env.apiUrl}${env.apiPrefix}/health`);
-      logger.info(`🌍 Environment: ${env.nodeEnv}`);
+      logger.info(`API server running on port ${env.apiPort}`);
     });
   } catch (err) {
     logger.fatal({ err }, 'Failed to start server');
     process.exit(1);
+  }
+}
+
+async function ensureSuperAdmin(): Promise<void> {
+  try {
+    const email = process.env.SUPER_ADMIN_EMAIL || 'shivam95ku@gmail.com';
+    // Check if platform tenant exists
+    let tenant = await prisma.tenant.findUnique({ where: { slug: 'platform' } });
+    if (!tenant) {
+      tenant = await prisma.tenant.create({
+        data: { name: 'SchoolNex Platform', slug: 'platform', status: 'active', subscriptionStatus: 'active', planCode: 'enterprise' },
+      });
+      logger.info('Platform tenant created');
+    }
+    // Check if super admin exists
+    const existing = await prisma.user.findFirst({ where: { tenantId: tenant.id, email } });
+    if (!existing) {
+      const bcrypt = await import('bcryptjs');
+      const password = process.env.SUPER_ADMIN_PASSWORD || 'Circle@123';
+      const passwordHash = await bcrypt.default.hash(password, 12);
+      const user = await prisma.user.create({
+        data: { tenantId: tenant.id, firstName: 'Shivam', lastName: 'Kumar', email, username: 'superadmin', passwordHash, phone: '+919572495969', status: 'active', emailVerified: true },
+      });
+      // Ensure super_admin role exists and assign
+      let role = await prisma.role.findUnique({ where: { tenantId_code: { tenantId: tenant.id, code: 'super_admin' } } });
+      if (!role) {
+        role = await prisma.role.create({ data: { tenantId: tenant.id, name: 'Super Admin', code: 'super_admin', isSystemRole: true } });
+      }
+      await prisma.userRole.create({ data: { userId: user.id, roleId: role.id, tenantId: tenant.id } });
+      logger.info({ email }, 'Super Admin auto-seeded on first startup');
+    }
+  } catch (err: any) {
+    logger.warn({ err: err.message }, 'Auto-seed check skipped (non-critical)');
   }
 }
 

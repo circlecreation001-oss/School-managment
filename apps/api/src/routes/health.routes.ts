@@ -39,4 +39,35 @@ router.get('/', async (_req: Request, res: Response) => {
   });
 });
 
+// Diagnostic: verify super admin exists (remove after launch)
+router.get('/debug/super-admin', async (_req: Request, res: Response) => {
+  try {
+    const tenant = await prisma.tenant.findUnique({ where: { slug: 'platform' } });
+    if (!tenant) return res.json({ exists: false, reason: 'no platform tenant' });
+
+    const email = process.env.SUPER_ADMIN_EMAIL || 'shivam95ku@gmail.com';
+    const user = await prisma.user.findFirst({
+      where: { tenantId: tenant.id, email },
+      select: { id: true, email: true, status: true, firstName: true, lastName: true, deletedAt: true, createdAt: true },
+    });
+
+    if (!user) return res.json({ exists: false, reason: 'user not found', tenantId: tenant.id, searchEmail: email });
+
+    const roles = await prisma.userRole.findMany({
+      where: { userId: user.id },
+      include: { role: { select: { code: true, name: true } } },
+    });
+
+    res.json({
+      exists: true,
+      user,
+      roles: roles.map(r => r.role.code),
+      tenantId: tenant.id,
+      tenantStatus: tenant.status,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 export { router as healthRouter };

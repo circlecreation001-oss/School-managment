@@ -129,6 +129,7 @@ export default function LoginPage() {
               <span>* Any registered ID</span>
             </div>
             <p className="mt-3 text-xs text-slate-400">Need access? Contact your institute administrator.</p>
+            <p className="mt-2 text-xs text-slate-500">Want to register your institute? <Link href="/signup" className="text-blue-600 hover:underline font-medium">Start Free Trial</Link></p>
           </div>
         </div>
       </div>

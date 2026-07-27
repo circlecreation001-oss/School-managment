@@ -11,6 +11,7 @@ import {
   refreshTokenSchema,
   verifyEmailSchema,
   logoutSchema,
+  signupInstituteSchema,
 } from './auth.schema.js';
 import rateLimit from 'express-rate-limit';
 
@@ -38,6 +39,7 @@ const passwordLimiter = rateLimit({
 // Public routes
 router.post('/login', authLimiter, validate(loginSchema), authController.login);
 router.post('/register', authLimiter, validate(registerSchema), authController.register);
+router.post('/signup-institute', authLimiter, validate(signupInstituteSchema), authController.signupInstitute);
 router.post('/refresh-token', validate(refreshTokenSchema), authController.refreshToken);
 router.post('/forgot-password', passwordLimiter, validate(forgotPasswordSchema), authController.forgotPassword);
 router.post('/reset-password', passwordLimiter, validate(resetPasswordSchema), authController.resetPassword);

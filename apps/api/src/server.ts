@@ -39,6 +39,7 @@ async function bootstrap(): Promise<void> {
 async function ensureSuperAdmin(): Promise<void> {
   try {
     const email = process.env.SUPER_ADMIN_EMAIL || 'shivam95ku@gmail.com';
+    const password = process.env.SUPER_ADMIN_PASSWORD || 'Circle@123';
     logger.info('[BOOT] ensureSuperAdmin started');
 
     // Check if platform tenant exists
@@ -53,18 +54,43 @@ async function ensureSuperAdmin(): Promise<void> {
       logger.info('[BOOT] tenant EXISTS: ' + tenant.id);
     }
 
-    // Check if super admin exists
-    logger.info('[BOOT] checking super admin: ' + email);
-    const existing = await prisma.user.findFirst({ where: { tenantId: tenant.id, email } });
-    if (existing) {
-      logger.info('[BOOT] super admin EXISTS: ' + existing.id + ' status=' + existing.status);
+    // Check if super admin exists by email
+    logger.info('[BOOT] checking super admin by email: ' + email);
+    const existingByEmail = await prisma.user.findFirst({ where: { tenantId: tenant.id, email } });
+    if (existingByEmail) {
+      logger.info('[BOOT] super admin EXISTS (by email): ' + existingByEmail.id + ' status=' + existingByEmail.status);
       return;
     }
 
-    // Create super admin
+    // Also check by username 'superadmin' - may exist with different email
+    const existingByUsername = await prisma.user.findFirst({ where: { tenantId: tenant.id, username: 'superadmin' } });
+    if (existingByUsername) {
+      logger.info('[BOOT] found existing user with username=superadmin, email=' + existingByUsername.email + ' - updating email/password');
+      const bcrypt = await import('bcryptjs');
+      const passwordHash = await bcrypt.default.hash(password, 12);
+      await prisma.user.update({
+        where: { id: existingByUsername.id },
+        data: { email, passwordHash, firstName: 'Shivam', lastName: 'Kumar', status: 'active', emailVerified: true },
+      });
+      logger.info('[BOOT] super admin UPDATED: ' + existingByUsername.id + ' email now=' + email);
+
+      // Ensure role assigned
+      let role = await prisma.role.findUnique({ where: { tenantId_code: { tenantId: tenant.id, code: 'super_admin' } } });
+      if (!role) {
+        role = await prisma.role.create({ data: { tenantId: tenant.id, name: 'Super Admin', code: 'super_admin', isSystemRole: true } });
+      }
+      const existingRole = await prisma.userRole.findFirst({ where: { userId: existingByUsername.id, roleId: role.id } });
+      if (!existingRole) {
+        await prisma.userRole.create({ data: { userId: existingByUsername.id, roleId: role.id, tenantId: tenant.id } });
+        logger.info('[BOOT] role ASSIGNED');
+      }
+      logger.info('[BOOT] startup completed (updated existing user)');
+      return;
+    }
+
+    // Create super admin from scratch
     logger.info('[BOOT] super admin NOT FOUND - creating...');
     const bcrypt = await import('bcryptjs');
-    const password = process.env.SUPER_ADMIN_PASSWORD || 'Circle@123';
     const passwordHash = await bcrypt.default.hash(password, 12);
     const user = await prisma.user.create({
       data: { tenantId: tenant.id, firstName: 'Shivam', lastName: 'Kumar', email, username: 'superadmin', passwordHash, phone: '+919572495969', status: 'active', emailVerified: true },

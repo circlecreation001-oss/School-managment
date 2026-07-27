@@ -96,6 +96,8 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           </div>
 
           <div className="hidden lg:flex items-center gap-3">
+            <Link href="/signup" className={`text-sm font-medium px-4 py-2 rounded-lg transition-all ${scrolled ? 'text-blue-600 hover:text-blue-700 hover:bg-blue-50' : 'text-white/90 hover:text-white hover:bg-white/10'}`}>
+              Start Free Trial</Link>
             <Link href="/login" className={`text-sm font-medium px-4 py-2 rounded-lg transition-all ${scrolled ? 'text-slate-700 hover:text-blue-600 hover:bg-blue-50' : 'text-white/90 hover:text-white hover:bg-white/10'}`}>
               Portal Login</Link>
             <Link href="/contact" className="text-sm font-semibold px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 hover:-translate-y-0.5 transition-all duration-300">
@@ -129,8 +131,9 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                   <Link key={r.label} href={r.href} onClick={() => setMobileOpen(false)} className="block text-sm text-slate-600 py-2 px-3 rounded-lg hover:bg-slate-50">{r.label}</Link>
                 ))}
                 <div className="pt-3 space-y-2">
+                  <Link href="/signup" onClick={() => setMobileOpen(false)} className="block text-center text-sm font-semibold px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white">Start Free Trial</Link>
                   <Link href="/login" onClick={() => setMobileOpen(false)} className="block text-center text-sm font-medium py-2.5 rounded-xl border border-slate-200 text-slate-700">Portal Login</Link>
-                  <Link href="/contact" onClick={() => setMobileOpen(false)} className="block text-center text-sm font-semibold px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white">Book Free Demo</Link>
+                  <Link href="/contact" onClick={() => setMobileOpen(false)} className="block text-center text-sm font-medium py-2.5 rounded-xl border border-slate-200 text-slate-700">Book Free Demo</Link>
                 </div>
               </div>
             </motion.div>

@@ -77,6 +77,25 @@ export const logoutSchema = z.object({
   allDevices: z.boolean().optional().default(false),
 });
 
+export const signupInstituteSchema = z.object({
+  instituteName: z.string().min(2, 'Institute name is required').max(200).trim(),
+  ownerName: z.string().min(2, 'Owner name is required').max(200).trim(),
+  email: z.string().email('Please enter a valid email').toLowerCase().trim(),
+  mobile: z.string().regex(/^\+?[1-9]\d{6,14}$/, 'Please enter a valid mobile number'),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(128)
+    .regex(/[A-Z]/, 'Must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'Must contain at least one lowercase letter')
+    .regex(/[0-9]/, 'Must contain at least one number')
+    .regex(/[^A-Za-z0-9]/, 'Must contain at least one special character'),
+  confirmPassword: z.string().min(1, 'Please confirm your password'),
+}).refine((d) => d.password === d.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
@@ -85,3 +104,4 @@ export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type RefreshTokenInput = z.infer<typeof refreshTokenSchema>;
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
 export type LogoutInput = z.infer<typeof logoutSchema>;
+export type SignupInstituteInput = z.infer<typeof signupInstituteSchema>;

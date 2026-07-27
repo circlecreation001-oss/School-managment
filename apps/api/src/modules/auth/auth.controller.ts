@@ -122,6 +122,18 @@ export class AuthController {
       next(err);
     }
   }
+
+  async signupInstitute(req: Request, res: Response, next: NextFunction) {
+    try {
+      const ip = req.ip || req.socket.remoteAddress || 'unknown';
+      const userAgent = req.headers['user-agent'] || 'unknown';
+
+      const result = await authService.signupInstitute(req.body, { ip, userAgent });
+      sendCreated(res, result, 'Institute registered successfully. You are now logged in.');
+    } catch (err) {
+      next(err);
+    }
+  }
 }
 
 export const authController = new AuthController();

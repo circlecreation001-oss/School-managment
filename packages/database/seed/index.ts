@@ -20,8 +20,8 @@ async function main() {
   console.info('Super admin user created');
 
   console.info('\nDatabase seed completed successfully!');
-  console.info('   Super Admin Login: shivam95ku@gmail.com / Circle@123');
-  console.info('   Super Admin URL: /super-admin/login');
+  console.info('   Platform tenant: platform');
+  console.info('   Use /signup to create institute accounts');
 }
 
 async function seedDefaultTenant() {

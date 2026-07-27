@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 /**
- * Flexible login — accepts email, username, admission number, employee ID, or phone.
+ * Flexible login - accepts email, username, admission number, employee ID, or phone.
  * The identifier field is validated server-side against multiple User columns.
  */
 export const loginSchema = z.object({
@@ -82,6 +82,12 @@ export const signupInstituteSchema = z.object({
   ownerName: z.string().min(2, 'Owner name is required').max(200).trim(),
   email: z.string().email('Please enter a valid email').toLowerCase().trim(),
   mobile: z.string().regex(/^\+?[1-9]\d{6,14}$/, 'Please enter a valid mobile number'),
+  instituteType: z.enum(['school', 'college', 'coaching', 'university', 'training', 'computer_institute'], {
+    required_error: 'Please select institute type',
+  }),
+  city: z.string().min(2, 'City is required').max(100).trim(),
+  state: z.string().min(2, 'State is required').max(100).trim(),
+  country: z.string().min(2, 'Country is required').max(100).trim().default('India'),
   password: z
     .string()
     .min(8, 'Password must be at least 8 characters')
@@ -91,6 +97,7 @@ export const signupInstituteSchema = z.object({
     .regex(/[0-9]/, 'Must contain at least one number')
     .regex(/[^A-Za-z0-9]/, 'Must contain at least one special character'),
   confirmPassword: z.string().min(1, 'Please confirm your password'),
+  acceptTerms: z.literal(true, { errorMap: () => ({ message: 'You must accept the Terms of Service' }) }),
 }).refine((d) => d.password === d.confirmPassword, {
   message: 'Passwords do not match',
   path: ['confirmPassword'],

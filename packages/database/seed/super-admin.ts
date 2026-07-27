@@ -1,42 +1,48 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
-// Read from environment variables in production, fallback to defaults for first setup
-const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL || 'shivam95ku@gmail.com';
-const SUPER_ADMIN_PASSWORD = process.env.SUPER_ADMIN_PASSWORD || 'Circle@123';
-
+/**
+ * Seeds the platform super admin (for platform-level management only).
+ * Credentials must be provided via environment variables.
+ * This is NOT used for institute owner accounts (those are created via /signup).
+ */
 export async function seedSuperAdmin(prisma: PrismaClient, tenantId: string) {
-  // Check if super admin already exists - prevent duplicates
-  const existing = await prisma.user.findFirst({
-    where: { tenantId, email: SUPER_ADMIN_EMAIL },
-  });
+  const email = process.env.SUPER_ADMIN_EMAIL;
+  const password = process.env.SUPER_ADMIN_PASSWORD;
 
-  if (existing) {
-    console.info(`   Super Admin already exists: ${SUPER_ADMIN_EMAIL}`);
+  if (!email || !password) {
+    console.info('   Skipping Super Admin seed: SUPER_ADMIN_EMAIL and SUPER_ADMIN_PASSWORD env vars not set');
     return;
   }
 
-  // Hash password securely with bcrypt (12 rounds)
-  const passwordHash = await bcrypt.hash(SUPER_ADMIN_PASSWORD, 12);
+  // Check if super admin already exists
+  const existing = await prisma.user.findFirst({
+    where: { tenantId, email },
+  });
 
-  // Create super admin user
+  if (existing) {
+    console.info(`   Super Admin already exists: ${email}`);
+    return;
+  }
+
+  const passwordHash = await bcrypt.hash(password, 12);
+
   const user = await prisma.user.upsert({
-    where: { tenantId_email: { tenantId, email: SUPER_ADMIN_EMAIL } },
+    where: { tenantId_email: { tenantId, email } },
     update: {},
     create: {
       tenantId,
-      firstName: 'Shivam',
-      lastName: 'Kumar',
-      email: SUPER_ADMIN_EMAIL,
+      firstName: process.env.SUPER_ADMIN_FIRST_NAME || 'Admin',
+      lastName: process.env.SUPER_ADMIN_LAST_NAME || '',
+      email,
       username: 'superadmin',
       passwordHash,
-      phone: '+919572495969',
+      phone: process.env.SUPER_ADMIN_PHONE || '',
       status: 'active',
       emailVerified: true,
     },
   });
 
-  // Assign SUPER_ADMIN role with full system permissions
   const superAdminRole = await prisma.role.findUnique({
     where: { tenantId_code: { tenantId, code: 'super_admin' } },
   });
@@ -59,5 +65,5 @@ export async function seedSuperAdmin(prisma: PrismaClient, tenantId: string) {
     });
   }
 
-  console.info(`   Super Admin created: ${SUPER_ADMIN_EMAIL}`);
+  console.info(`   Super Admin created: ${email}`);
 }

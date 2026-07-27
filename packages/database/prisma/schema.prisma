@@ -1,6 +1,6 @@
 // ============================================================
-// Education ERP - Complete Database Schema
-// Multi-Tenant White-Label SaaS Platform
+// SchoolNex - Complete Database Schema
+// Multi-Tenant SaaS Platform by Circle Creation
 // ============================================================
 
 generator client {

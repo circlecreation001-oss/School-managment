@@ -486,7 +486,7 @@ export class AuthService {
     const firstName = nameParts[0] || input.ownerName;
     const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
 
-    const trialDays = 30;
+    const trialDays = 14;
     const trialEndsAt = new Date(Date.now() + trialDays * 86400000);
 
     // ─── Transaction: Create tenant + institution + branch + session + subscription + admin user + roles ───
@@ -529,7 +529,7 @@ export class AuthService {
 
       // 3. Create institution + branch
       const institution = await tx.institution.create({
-        data: { tenantId: tenant.id, name: input.instituteName, code: slug.toUpperCase().replace(/-/g, '_'), type: 'school', status: 'active' },
+        data: { tenantId: tenant.id, name: input.instituteName, code: slug.toUpperCase().replace(/-/g, '_'), type: input.instituteType || 'school', status: 'active' },
       });
 
       const branch = await tx.branch.create({
@@ -567,10 +567,18 @@ export class AuthService {
         { module: 'general', key: 'onboarding_complete', value: 'false' },
         { module: 'general', key: 'institution_id', value: institution.id },
         { module: 'general', key: 'branch_id', value: branch.id },
+        { module: 'general', key: 'city', value: input.city },
+        { module: 'general', key: 'state', value: input.state },
+        { module: 'general', key: 'country', value: input.country || 'India' },
         { module: 'attendance', key: 'working_days', value: 'Mon,Tue,Wed,Thu,Fri,Sat' },
         { module: 'fees', key: 'late_fee_per_day', value: '0' },
         { module: 'fees', key: 'receipt_prefix', value: 'RCT' },
         { module: 'examination', key: 'grading_system', value: 'percentage' },
+        { module: 'notifications', key: 'email_enabled', value: 'true' },
+        { module: 'notifications', key: 'sms_enabled', value: 'false' },
+        { module: 'notifications', key: 'whatsapp_enabled', value: 'false' },
+        { module: 'website', key: 'cms_enabled', value: 'true' },
+        { module: 'storage', key: 'bucket', value: 'schoolnex' },
       ];
       for (const cfg of configs) {
         await tx.organizationConfig.create({ data: { tenantId: tenant.id, ...cfg } });
@@ -615,7 +623,7 @@ export class AuthService {
       await emailQueue.add('welcome-institute', {
         to: input.email,
         subject: `Welcome to SchoolNex - ${input.instituteName}`,
-        body: `Hi ${firstName},\n\nYour institute "${input.instituteName}" is now live on SchoolNex!\n\nYour 30-day free trial has started. Login at: ${slug}.schoolnex.in\n\nThank you,\nTeam SchoolNex`,
+        body: `Hi ${firstName},\n\nYour institute "${input.instituteName}" is now live on SchoolNex!\n\nYour 14-day free trial has started. Login at: schoolnex.in/login\n\nThank you,\nTeam SchoolNex\nby Circle Creation`,
         tenantId: result.tenant.id,
       });
     } catch (emailErr) {

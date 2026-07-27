@@ -40,7 +40,7 @@ export function Sidebar({ isCollapsed, isMobileOpen, onCloseMobile }: SidebarPro
       )}>
         <Link href="/dashboard" className="flex items-center gap-2">
           <div className="h-8 w-8 rounded-lg bg-primary-600 flex items-center justify-center">
-            <span className="text-white font-bold text-sm">E</span>
+            <span className="text-white font-bold text-sm">S</span>
           </div>
           {!isCollapsed && (
             <span className="text-lg font-semibold text-slate-900 dark:text-slate-50 truncate">

@@ -34,80 +34,10 @@ router.get('/', async (_req: Request, res: Response) => {
     status: isHealthy ? 'healthy' : 'degraded',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
+    version: process.env.npm_package_version || '0.1.0',
     checks,
     workers: workerHealth,
   });
-});
-
-// Diagnostic: verify super admin exists (remove after launch)
-router.get('/debug/super-admin', async (_req: Request, res: Response) => {
-  try {
-    const tenant = await prisma.tenant.findUnique({ where: { slug: 'platform' } });
-    if (!tenant) return res.json({ exists: false, reason: 'no platform tenant' });
-
-    const email = process.env.SUPER_ADMIN_EMAIL || 'shivam95ku@gmail.com';
-    const user = await prisma.user.findFirst({
-      where: { tenantId: tenant.id, email },
-      select: { id: true, email: true, status: true, firstName: true, lastName: true, deletedAt: true, createdAt: true },
-    });
-
-    if (!user) return res.json({ exists: false, reason: 'user not found', tenantId: tenant.id, searchEmail: email });
-
-    const roles = await prisma.userRole.findMany({
-      where: { userId: user.id },
-      include: { role: { select: { code: true, name: true } } },
-    });
-
-    res.json({
-      exists: true,
-      user,
-      roles: roles.map(r => r.role.code),
-      tenantId: tenant.id,
-      tenantStatus: tenant.status,
-    });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Force-create Super Admin (one-time use, remove after first login works)
-router.get('/debug/create-super-admin', async (_req: Request, res: Response) => {
-  try {
-    const bcrypt = await import('bcryptjs');
-    const tenantId = 'cmrejm5600008trwr6a0fdy1';
-    const newEmail = 'shivam95ku@gmail.com';
-    const password = 'Circle@123';
-
-    // Strategy: find existing user with username 'superadmin' and update their email + password
-    const existingByUsername = await prisma.user.findFirst({ where: { tenantId, username: 'superadmin' } });
-
-    if (existingByUsername) {
-      // Update existing super admin with new email and password
-      const passwordHash = await bcrypt.default.hash(password, 12);
-      const updated = await prisma.user.update({
-        where: { id: existingByUsername.id },
-        data: { email: newEmail, passwordHash, firstName: 'Shivam', lastName: 'Kumar', status: 'active', emailVerified: true },
-      });
-      return res.json({ success: true, action: 'UPDATED existing user', userId: updated.id, oldEmail: existingByUsername.email, newEmail, message: 'Login with: shivam95ku@gmail.com / Circle@123' });
-    }
-
-    // No existing user - create new
-    const passwordHash = await bcrypt.default.hash(password, 12);
-    const user = await prisma.user.create({
-      data: { tenantId, firstName: 'Shivam', lastName: 'Kumar', email: newEmail, username: 'superadmin', passwordHash, phone: '+919572495969', status: 'active', emailVerified: true },
-    });
-
-    // Assign role
-    let role = await prisma.role.findUnique({ where: { tenantId_code: { tenantId, code: 'super_admin' } } });
-    if (!role) {
-      role = await prisma.role.create({ data: { tenantId, name: 'Super Admin', code: 'super_admin', isSystemRole: true } });
-    }
-    await prisma.userRole.create({ data: { userId: user.id, roleId: role.id, tenantId } });
-
-    res.json({ success: true, action: 'CREATED new user', userId: user.id, email: newEmail, message: 'Login with: shivam95ku@gmail.com / Circle@123' });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message, stack: err.stack });
-  }
 });
 
 export { router as healthRouter };

@@ -42,10 +42,42 @@ interface AuthResult {
 export class AuthService {
   // ─── LOGIN ───
   async login(input: LoginInput, meta: { ip: string; userAgent: string }): Promise<AuthResult> {
-    // Resolve tenant
-    const tenantSlug = input.tenantSlug || 'platform';
-    const tenant = await authRepository.findTenantBySlug(tenantSlug);
-    if (!tenant) throw new AppError(404, 'TENANT_NOT_FOUND', AUTH_ERRORS.TENANT_NOT_FOUND);
+    const { prisma } = await import('@erp/database');
+
+    // Resolve tenant - if no tenantSlug given, auto-detect from identifier
+    let tenant: any = null;
+    if (input.tenantSlug) {
+      tenant = await authRepository.findTenantBySlug(input.tenantSlug);
+      if (!tenant) throw new AppError(404, 'TENANT_NOT_FOUND', AUTH_ERRORS.TENANT_NOT_FOUND);
+    } else {
+      // Try platform first, then auto-detect by email/username/phone
+      tenant = await authRepository.findTenantBySlug('platform');
+      const identifier = input.identifier.toLowerCase().trim();
+
+      // Check if user exists in platform tenant
+      if (tenant) {
+        const userInPlatform = await authRepository.findUserByIdentifier(tenant.id, input.identifier);
+        if (!userInPlatform) {
+          // Not in platform - search globally by email/username/phone
+          const globalUser = await prisma.user.findFirst({
+            where: {
+              deletedAt: null,
+              OR: [
+                { email: identifier },
+                { username: identifier },
+                { phone: input.identifier.trim() },
+              ],
+            },
+            select: { tenantId: true },
+          });
+          if (globalUser) {
+            tenant = await authRepository.findTenantById(globalUser.tenantId);
+          }
+        }
+      }
+
+      if (!tenant) throw new AppError(404, 'TENANT_NOT_FOUND', AUTH_ERRORS.TENANT_NOT_FOUND);
+    }
 
     // Check tenant status
     if (tenant.status === 'suspended') {

@@ -28,18 +28,18 @@ export default function ContactPage() {
       <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-10">
         <div>
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Our Address</h2>
-          <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">123 Education Street, Academic City, State - 123456</p>
+          <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">Delhi, India</p>
           <h2 className="mt-6 text-lg font-semibold text-slate-900 dark:text-slate-100">Phone</h2>
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">+91 99999 99999</p>
+          <a href="tel:+919572495969" className="mt-2 block text-sm text-slate-600 dark:text-slate-400 hover:text-blue-600 transition-colors">+91 9572495969</a>
           <h2 className="mt-6 text-lg font-semibold text-slate-900 dark:text-slate-100">Email</h2>
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">info@institution.edu</p>
-          <h2 className="mt-6 text-lg font-semibold text-slate-900 dark:text-slate-100">Office Hours</h2>
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">Mon–Sat: 9:00 AM – 5:00 PM</p>
+          <a href="mailto:circlecreation001@gmail.com" className="mt-2 block text-sm text-slate-600 dark:text-slate-400 hover:text-blue-600 transition-colors">circlecreation001@gmail.com</a>
+          <h2 className="mt-6 text-lg font-semibold text-slate-900 dark:text-slate-100">Support Hours</h2>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">Open 24/7 &mdash; Our support team is available anytime to assist you.</p>
 
           {/* Google Map Embed */}
           <div className="mt-6 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
-            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3502.123456789!2d77.1234567!3d28.1234567!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjjCsDA3JzI0LjQiTiA3N8KwMDcnMjQuNCJF!5e0!3m2!1sen!2sin!4v1234567890"
-              width="100%" height="200" style={{ border: 0 }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" title="Our Location" />
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d224345.83923192776!2d77.06889754725782!3d28.52758200617607!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390cfd5b347eb62d%3A0x52c2b7494e204dce!2sNew%20Delhi%2C%20Delhi%2C%20India!5e0!3m2!1sen!2sin!4v1690000000000"
+              width="100%" height="200" style={{ border: 0 }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" title="SchoolNex - Delhi, India" />
           </div>
         </div>
 

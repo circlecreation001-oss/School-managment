@@ -3,16 +3,19 @@ import { ZodError } from 'zod';
 import { logger } from '../config/index.js';
 import { AppError } from '../utils/errors.js';
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 export function errorHandler(err: Error, req: Request, res: Response, _next: NextFunction): void {
-  // Log the error
+  // Log error (never log passwords, tokens, or sensitive body fields)
+  const sanitizedUrl = req.originalUrl.replace(/token=[^&]+/g, 'token=***');
   logger.error(
     {
-      err,
+      err: isProduction ? { message: err.message, code: (err as any).code } : err,
       method: req.method,
-      url: req.originalUrl,
+      url: sanitizedUrl,
       requestId: req.id,
     },
-    'Unhandled error',
+    'Error',
   );
 
   // Handle known application errors
@@ -33,7 +36,6 @@ export function errorHandler(err: Error, req: Request, res: Response, _next: Nex
     const details = err.errors.map((e) => ({
       field: e.path.join('.'),
       message: e.message,
-      code: e.code,
     }));
 
     res.status(422).json({
@@ -47,18 +49,14 @@ export function errorHandler(err: Error, req: Request, res: Response, _next: Nex
     return;
   }
 
-  // Handle unexpected errors
-  const statusCode = 500;
-  const message =
-    process.env.NODE_ENV === 'production'
-      ? 'An unexpected error occurred'
-      : err.message || 'Internal server error';
-
-  res.status(statusCode).json({
+  // Handle unexpected errors - NEVER expose internals in production
+  res.status(500).json({
     success: false,
     error: {
       code: 'INTERNAL_SERVER_ERROR',
-      message,
+      message: isProduction
+        ? 'An unexpected error occurred'
+        : err.message || 'Internal server error',
     },
   });
 }

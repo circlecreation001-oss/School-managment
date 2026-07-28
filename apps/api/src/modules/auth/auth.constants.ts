@@ -1,11 +1,22 @@
 export const AUTH_CONSTANTS = {
+  /** Maximum failed login attempts before lockout */
   MAX_LOGIN_ATTEMPTS: 5,
+  /** Lockout duration in minutes after max failed attempts */
   LOCKOUT_DURATION_MINUTES: 30,
+  /** Number of previous passwords to check against reuse */
   PASSWORD_HISTORY_COUNT: 5,
+  /** Password reset token validity in minutes */
   RESET_TOKEN_EXPIRY_MINUTES: 30,
+  /** Email verification token validity in hours */
   EMAIL_VERIFICATION_EXPIRY_HOURS: 24,
+  /** Whether to rotate refresh tokens on use */
   REFRESH_TOKEN_ROTATION: true,
+  /** Maximum concurrent sessions per user */
   SESSION_MAX_PER_USER: 5,
+  /** Minimum password length */
+  PASSWORD_MIN_LENGTH: 12,
+  /** Bcrypt rounds for password hashing */
+  BCRYPT_ROUNDS: 12,
 } as const;
 
 export const AUTH_ERRORS = {

@@ -17,7 +17,7 @@ export const registerSchema = z.object({
   email: z.string().email().toLowerCase().trim(),
   password: z
     .string()
-    .min(8, 'Password must be at least 8 characters')
+    .min(12, 'Password must be at least 12 characters')
     .max(128)
     .regex(/[A-Z]/, 'Must contain at least one uppercase letter')
     .regex(/[a-z]/, 'Must contain at least one lowercase letter')
@@ -36,7 +36,7 @@ export const resetPasswordSchema = z.object({
   token: z.string().min(1, 'Reset token is required'),
   password: z
     .string()
-    .min(8)
+    .min(12)
     .max(128)
     .regex(/[A-Z]/)
     .regex(/[a-z]/)
@@ -52,7 +52,7 @@ export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
   newPassword: z
     .string()
-    .min(8)
+    .min(12)
     .max(128)
     .regex(/[A-Z]/)
     .regex(/[a-z]/)
@@ -90,7 +90,7 @@ export const signupInstituteSchema = z.object({
   country: z.string().min(2, 'Country is required').max(100).trim().default('India'),
   password: z
     .string()
-    .min(8, 'Password must be at least 8 characters')
+    .min(12, 'Password must be at least 12 characters')
     .max(128)
     .regex(/[A-Z]/, 'Must contain at least one uppercase letter')
     .regex(/[a-z]/, 'Must contain at least one lowercase letter')

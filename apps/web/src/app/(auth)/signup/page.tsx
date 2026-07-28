@@ -73,7 +73,7 @@ export default function SignupPage() {
     if (!form.state.trim()) e.state = 'State is required';
     if (!form.country.trim()) e.country = 'Country is required';
     if (!form.password) e.password = 'Password is required';
-    else if (form.password.length < 8) e.password = 'Min 8 characters';
+    else if (form.password.length < 12) e.password = 'Min 12 characters';
     else if (!/[A-Z]/.test(form.password)) e.password = 'Need uppercase letter';
     else if (!/[a-z]/.test(form.password)) e.password = 'Need lowercase letter';
     else if (!/[0-9]/.test(form.password)) e.password = 'Need a number';
@@ -274,7 +274,7 @@ export default function SignupPage() {
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Password <span className="text-red-500">*</span></label>
                 <div className="relative">
-                  <input id="password" type={showPassword ? 'text' : 'password'} value={form.password} onChange={handleChange('password')} autoComplete="new-password" placeholder="Min. 8 characters" className={inputClass('password')} />
+                  <input id="password" type={showPassword ? 'text' : 'password'} value={form.password} onChange={handleChange('password')} autoComplete="new-password" placeholder="Min. 12 characters" className={inputClass('password')} />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600" aria-label="Toggle password visibility">
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                   </button>

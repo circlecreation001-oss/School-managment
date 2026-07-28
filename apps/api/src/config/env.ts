@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Load .env file (development only â€” Render injects env vars directly)
+// Load .env file (development only - Render injects env vars directly)
 if (process.env.NODE_ENV !== 'production') {
   dotenv.config({ path: path.resolve(process.cwd(), '.env') });
   dotenv.config({ path: path.resolve(process.cwd(), '../../.env') });
@@ -9,32 +9,12 @@ if (process.env.NODE_ENV !== 'production') {
 
 const isProduction = process.env.NODE_ENV === 'production';
 
-// â”€â”€â”€ Startup Logs â”€â”€â”€
-console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('DATABASE_URL loaded:', !!process.env.DATABASE_URL);
-console.log('REDIS_URL loaded:', !!process.env.REDIS_URL);
-console.log('JWT_ACCESS_SECRET loaded:', !!process.env.JWT_ACCESS_SECRET);
-console.log('JWT_REFRESH_SECRET loaded:', !!process.env.JWT_REFRESH_SECRET);
-console.log('ENCRYPTION_KEY loaded:', !!process.env.ENCRYPTION_KEY);
-console.log('CORS_ORIGINS:', process.env.CORS_ORIGINS || '(not set)');
-
-// Log DB connection info (without password)
-if (process.env.DATABASE_URL) {
-  try {
-    const dbUrl = new URL(process.env.DATABASE_URL);
-    console.log(`DATABASE_URL target: ${dbUrl.username}@${dbUrl.hostname}:${dbUrl.port}${dbUrl.pathname}${dbUrl.search}`);
-  } catch {
-    console.log('DATABASE_URL format: non-URL or invalid');
-  }
-}
-
-// â”€â”€â”€ Production Validation â”€â”€â”€
+// Production validation - fail fast if critical vars missing
 if (isProduction) {
   const required = ['DATABASE_URL', 'REDIS_URL', 'JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET', 'ENCRYPTION_KEY'];
   const missing = required.filter((key) => !process.env[key]);
   if (missing.length > 0) {
-    console.error(`[FATAL] Missing required environment variables: ${missing.join(', ')}`);
-    console.error('[FATAL] Server cannot start without these variables in production.');
+    process.stderr.write(`[FATAL] Missing env vars: ${missing.join(', ')}\n`);
     process.exit(1);
   }
 }
@@ -48,10 +28,10 @@ export const env = {
   apiPort: parseInt(process.env.API_PORT || '4000', 10),
   apiPrefix: process.env.API_PREFIX || '/api/v1',
 
-  // Database â€” use DATABASE_URL directly, no localhost fallback in production
+  // Database
   databaseUrl: process.env.DATABASE_URL || '',
 
-  // Redis â€” use REDIS_URL directly, no localhost fallback in production
+  // Redis
   redisUrl: process.env.REDIS_URL || (isProduction ? '' : 'redis://localhost:6379'),
   redisHost: process.env.REDIS_HOST || (isProduction ? '' : 'localhost'),
   redisPort: parseInt(process.env.REDIS_PORT || '6379', 10),
@@ -68,7 +48,7 @@ export const env = {
   s3Endpoint: process.env.S3_ENDPOINT || '',
   s3AccessKey: process.env.S3_ACCESS_KEY || '',
   s3SecretKey: process.env.S3_SECRET_KEY || '',
-  s3Bucket: process.env.S3_BUCKET || 'education-erp',
+  s3Bucket: process.env.S3_BUCKET || 'schoolnex',
   s3Region: process.env.S3_REGION || 'us-east-1',
 
   // Email
@@ -93,7 +73,7 @@ export const env = {
     .map((s) => s.trim())
     .filter(Boolean),
 
-  // Encryption
+  // Encryption (AES-256)
   encryptionKey: process.env.ENCRYPTION_KEY || (isProduction ? '' : 'dev-encryption-key-32-chars-min!'),
 
   isDevelopment() {

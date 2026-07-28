@@ -30,6 +30,10 @@ router.get('/', async (_req: Request, res: Response) => {
 
   const isHealthy = checks.database === 'healthy' && checks.redis === 'healthy';
 
+  // System metrics
+  const memUsage = process.memoryUsage();
+  const cpuUsage = process.cpuUsage();
+
   res.status(isHealthy ? 200 : 503).json({
     status: isHealthy ? 'healthy' : 'degraded',
     timestamp: new Date().toISOString(),
@@ -37,6 +41,20 @@ router.get('/', async (_req: Request, res: Response) => {
     version: process.env.npm_package_version || '0.1.0',
     checks,
     workers: workerHealth,
+    system: {
+      memory: {
+        rss: Math.round(memUsage.rss / 1024 / 1024),
+        heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024),
+        heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024),
+        external: Math.round(memUsage.external / 1024 / 1024),
+        unit: 'MB',
+      },
+      cpu: {
+        user: Math.round(cpuUsage.user / 1000),
+        system: Math.round(cpuUsage.system / 1000),
+        unit: 'ms',
+      },
+    },
   });
 });
 

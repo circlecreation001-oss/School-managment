@@ -4,3 +4,4 @@ export { requireRole, requirePermission } from './rbac.middleware.js';
 export { resolveTenant, requireTenant } from './tenant.middleware.js';
 export { validate, validateRequest } from './validate.middleware.js';
 export { requestId } from './request-id.middleware.js';
+export { upload, generateSafeFilename } from './upload.middleware.js';

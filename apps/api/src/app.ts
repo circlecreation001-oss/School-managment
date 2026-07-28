@@ -13,58 +13,85 @@ const app = express();
 // ─── Trust proxy (for rate limiting behind reverse proxy) ───
 app.set('trust proxy', 1);
 
+// ─── Disable x-powered-by ───
+app.disable('x-powered-by');
+
 // ─── CORS (MUST be before all other middleware) ───
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (server-to-server, curl, mobile apps)
     if (!origin) return callback(null, true);
-
     const allowedOrigins = env.corsOrigins;
-
-    // In development, allow all
     if (env.nodeEnv === 'development') return callback(null, true);
-
-    // Check if origin is in allowed list
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-
-    // Also allow any *.vercel.app preview deployments
-    if (origin.endsWith('.vercel.app')) {
-      return callback(null, true);
-    }
-
-    logger.warn({ origin, allowedOrigins }, 'CORS blocked request from origin');
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    if (origin.endsWith('.vercel.app')) return callback(null, true);
+    logger.warn({ origin }, 'CORS blocked');
     return callback(null, false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-tenant-id', 'x-request-id'],
   exposedHeaders: ['x-request-id'],
-  maxAge: 86400, // Cache preflight for 24 hours
+  maxAge: 86400,
 };
 
-// Handle OPTIONS preflight for ALL routes (returns 204)
 app.options('*', cors(corsOptions));
-
-// Apply CORS to all requests
 app.use(cors(corsOptions));
 
-// ─── Security headers ───
-app.use(helmet());
+// ─── Security headers (Helmet + hardened) ───
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        connectSrc: ["'self'"],
+        fontSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'self'"],
+        frameSrc: ["'none'"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"],
+        frameAncestors: ["'none'"],
+        upgradeInsecureRequests: [],
+      },
+    },
+    crossOriginEmbedderPolicy: false, // Allow cross-origin resources (storage)
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    hsts: {
+      maxAge: 31536000, // 1 year
+      includeSubDomains: true,
+      preload: true,
+    },
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    xContentTypeOptions: true, // X-Content-Type-Options: nosniff
+    xFrameOptions: { action: 'deny' }, // Clickjacking protection
+    xXssProtection: true, // X-XSS-Protection
+  }),
+);
+
+// ─── Permissions-Policy header ───
+app.use((_req, res, next) => {
+  res.setHeader(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+  );
+  next();
+});
 
 // ─── Request ID ───
 app.use(requestId);
 
-// ─── Body parsing ───
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(cookieParser());
+// ─── Body parsing (strict size limits) ───
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
+app.use(cookieParser(env.encryptionKey)); // Signed cookies
 
 // ─── Compression ───
 app.use(compression());
 
-// ─── Rate limiting ───
+// ─── Global rate limiting ───
 const limiter = rateLimit({
   windowMs: env.rateLimitWindowMs,
   max: env.rateLimitMaxRequests,
@@ -80,13 +107,15 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// ─── Request logging ───
+// ─── Request logging (sanitized - never log auth headers or bodies with passwords) ───
 app.use((req, _res, next) => {
-  logger.info({ method: req.method, url: req.originalUrl, requestId: req.id }, 'Incoming request');
+  if (env.nodeEnv !== 'test') {
+    logger.info({ method: req.method, url: req.originalUrl, requestId: req.id }, 'req');
+  }
   next();
 });
 
-// ─── Tenant context resolution (after auth sets user) ───
+// ─── Tenant context resolution ───
 app.use(env.apiPrefix, resolveTenant);
 
 // ─── API Routes ───

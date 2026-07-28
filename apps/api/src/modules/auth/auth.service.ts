@@ -518,7 +518,7 @@ export class AuthService {
     const firstName = nameParts[0] || input.ownerName;
     const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
 
-    const trialDays = 14;
+    const trialDays = 7;
     const trialEndsAt = new Date(Date.now() + trialDays * 86400000);
 
     // ─── Transaction: Create tenant + institution + branch + session + subscription + admin user + roles ───
@@ -655,7 +655,7 @@ export class AuthService {
       await emailQueue.add('welcome-institute', {
         to: input.email,
         subject: `Welcome to SchoolNex - ${input.instituteName}`,
-        body: `Hi ${firstName},\n\nYour institute "${input.instituteName}" is now live on SchoolNex!\n\nYour 14-day free trial has started. Login at: schoolnex.in/login\n\nThank you,\nTeam SchoolNex\nby Circle Creation`,
+        body: `Hi ${firstName},\n\nYour institute "${input.instituteName}" is now live on SchoolNex!\n\nYour 7-day free trial has started. Login at: schoolnex.in/login\n\nThank you,\nTeam SchoolNex\nby Circle Creation`,
         tenantId: result.tenant.id,
       });
     } catch (emailErr) {

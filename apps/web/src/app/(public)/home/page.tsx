@@ -253,7 +253,7 @@ export default function HomePage() {
                 <ul className="mt-8 space-y-3">
                   {plan.features.map((f) => (<li key={f} className="flex items-center gap-2.5 text-sm text-slate-600"><svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>{f}</li>))}
                 </ul>
-                <Link href="/contact" className={`mt-8 block text-center text-sm font-semibold py-3.5 rounded-2xl transition-all duration-300 ${plan.popular ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20 hover:shadow-xl hover:-translate-y-0.5' : 'border border-slate-200 text-slate-700 hover:border-blue-300 hover:text-blue-600'}`}>
+                <Link href={plan.price === 'Custom' ? 'https://wa.me/919572495969?text=Hello%20SchoolNex%20Team,%20I%20am%20interested%20in%20the%20Enterprise%20plan.%20Please%20share%20more%20details.' : '/signup'} target={plan.price === 'Custom' ? '_blank' : undefined} rel={plan.price === 'Custom' ? 'noopener noreferrer' : undefined} className={`mt-8 block text-center text-sm font-semibold py-3.5 rounded-2xl transition-all duration-300 ${plan.popular ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20 hover:shadow-xl hover:-translate-y-0.5' : 'border border-slate-200 text-slate-700 hover:border-blue-300 hover:text-blue-600'}`}>
                   {plan.price === 'Custom' ? 'Contact Sales' : 'Start Free Trial'}
                 </Link>
               </motion.div>

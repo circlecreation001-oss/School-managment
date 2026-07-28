@@ -156,7 +156,7 @@ export default function SignupPage() {
               <p className="text-blue-200 text-sm">by Circle Creation</p>
             </div>
           </div>
-          <h2 className="text-3xl font-bold leading-tight mb-4">Start Your Free 14-Day Trial</h2>
+          <h2 className="text-3xl font-bold leading-tight mb-4">Start Your Free 7-Day Trial</h2>
           <p className="text-blue-100 text-lg leading-relaxed mb-8">
             Set up your institute in under 2 minutes. No credit card required. Full access to all features during trial.
           </p>
@@ -196,7 +196,7 @@ export default function SignupPage() {
 
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Register Your Institute</h2>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Start your 14-day free trial. No credit card needed.</p>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Start your 7-day free trial. No credit card needed.</p>
           </div>
 
           {serverError && (

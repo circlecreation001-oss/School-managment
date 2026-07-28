@@ -66,6 +66,41 @@ export class WebsiteController {
       sendCreated(res, await websiteService.submitEnquiry(tenantId, req.body), 'Enquiry submitted');
     } catch (e) { next(e); }
   }
+  async submitEnterpriseLead(req: Request, res: Response, next: NextFunction) {
+    try {
+      const data = req.body;
+      const { prisma } = await import('@erp/database');
+      // Find platform tenant for enterprise leads
+      let tenant = await prisma.tenant.findUnique({ where: { slug: 'platform' } });
+      if (!tenant) {
+        tenant = await prisma.tenant.create({ data: { name: 'SchoolNex Platform', slug: 'platform', status: 'active', subscriptionStatus: 'active', planCode: 'enterprise' } });
+      }
+      // Store as enquiry with source=enterprise and full data as metadata
+      const lead = await prisma.enquiry.create({
+        data: {
+          tenantId: tenant.id,
+          fullName: data.contactPerson || '',
+          email: data.email || '',
+          phone: data.phone || '',
+          subject: `Enterprise Inquiry - ${data.schoolName || 'Unknown'}`,
+          message: data.requirements || '',
+          source: 'enterprise',
+          metadata: JSON.parse(JSON.stringify(data)),
+        } as any,
+      });
+      // Queue admin notification
+      try {
+        const { emailQueue } = await import('../../config/index.js');
+        await emailQueue.add('enterprise-lead', {
+          to: process.env.SUPER_ADMIN_EMAIL || 'circlecreation001@gmail.com',
+          subject: `New Enterprise Lead: ${data.schoolName} (${data.students} students)`,
+          body: `School: ${data.schoolName}\nContact: ${data.contactPerson}\nEmail: ${data.email}\nPhone: ${data.phone}\nStudents: ${data.students}\nBranches: ${data.branches}\nBudget: ${data.budget}\nModules: ${(data.modules || []).join(', ')}`,
+          tenantId: tenant.id,
+        });
+      } catch { /* non-fatal */ }
+      sendCreated(res, { id: lead.id, message: 'Enterprise inquiry submitted successfully' }, 'Enterprise inquiry submitted');
+    } catch (e) { next(e); }
+  }
   async updateEnquiryStatus(req: Request, res: Response, next: NextFunction) {
     try { sendSuccess(res, await websiteService.updateEnquiryStatus(req.user!.tenantId, req.params.id!, req.body.status, req.user!.id)); } catch (e) { next(e); }
   }

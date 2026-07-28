@@ -11,6 +11,7 @@ const router = Router();
 router.get('/public/pages/:slug', websiteController.getPublicPage);
 router.get('/public/blog/:slug', websiteController.getPublicBlog);
 router.post('/public/enquiry', validate(createEnquirySchema), websiteController.submitEnquiry);
+router.post('/enterprise-leads', websiteController.submitEnterpriseLead);
 
 // ─── ADMIN endpoints (auth required) ───
 router.use(authenticate);

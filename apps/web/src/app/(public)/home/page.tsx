@@ -239,7 +239,7 @@ export default function HomePage() {
             {[
               { name: 'Starter', price: '4,999', period: '/mo', desc: 'For small institutes up to 500 students', features: ['500 Students','5 Staff Logins','Professional Website','Basic ERP Modules','Email Support','Cloud Backup'] },
               { name: 'Professional', price: '9,999', period: '/mo', desc: 'For growing institutes up to 2000 students', popular: true, features: ['2,000 Students','Unlimited Staff','Website + SEO','All Core ERP Modules','WhatsApp + SMS','Mobile Apps','Priority Support','Multi Branch'] },
-              { name: 'Enterprise', price: 'Custom', period: '', desc: 'For large organizations and universities', features: ['Unlimited Students','Unlimited Branches','Custom Domain','Dedicated Server','API Access','Custom Implementation','Dedicated Account Manager','Priority Support'] },
+              { name: 'Enterprise', price: 'Custom', period: '', desc: 'For large schools, school groups, colleges & universities', features: ['Unlimited Students','Unlimited Branches','Multi-Campus Management','All Mobile Apps','Custom Reports & Analytics','WhatsApp + SMS + Payment','Biometric & RFID Support','GPS Bus Tracking','White Label Option','Dedicated Account Manager','24/7 Priority SLA Support'] },
             ].map((plan) => (
               <motion.div key={plan.name} variants={fadeUp} className={`relative p-8 rounded-3xl border ${plan.popular ? 'border-blue-200 bg-gradient-to-b from-blue-50/50 to-white shadow-xl ring-1 ring-blue-100' : 'border-slate-200 bg-white hover:shadow-lg'} transition-all duration-300`}>
                 {plan.popular && <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg">Most Popular</span>}
@@ -247,13 +247,13 @@ export default function HomePage() {
                 <p className="text-sm text-slate-500 mt-1">{plan.desc}</p>
                 <div className="mt-6 flex items-baseline gap-1">
                   {plan.price !== 'Custom' && <span className="text-lg text-slate-500">&#8377;</span>}
-                  <span className="text-4xl font-bold text-slate-900">{plan.price}</span>
+                  <span className="text-4xl font-bold text-slate-900">{plan.price === 'Custom' ? 'Custom Quote' : plan.price}</span>
                   <span className="text-sm text-slate-500">{plan.period}</span>
                 </div>
                 <ul className="mt-8 space-y-3">
                   {plan.features.map((f) => (<li key={f} className="flex items-center gap-2.5 text-sm text-slate-600"><svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>{f}</li>))}
                 </ul>
-                <Link href={plan.price === 'Custom' ? 'https://wa.me/919572495969?text=Hello%20SchoolNex%20Team,%20I%20am%20interested%20in%20the%20Enterprise%20plan.%20Please%20share%20more%20details.' : '/signup'} target={plan.price === 'Custom' ? '_blank' : undefined} rel={plan.price === 'Custom' ? 'noopener noreferrer' : undefined} className={`mt-8 block text-center text-sm font-semibold py-3.5 rounded-2xl transition-all duration-300 ${plan.popular ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20 hover:shadow-xl hover:-translate-y-0.5' : 'border border-slate-200 text-slate-700 hover:border-blue-300 hover:text-blue-600'}`}>
+                <Link href={plan.price === 'Custom' ? '/enterprise' : '/signup'} className={`mt-8 block text-center text-sm font-semibold py-3.5 rounded-2xl transition-all duration-300 ${plan.popular ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20 hover:shadow-xl hover:-translate-y-0.5' : 'border border-slate-200 text-slate-700 hover:border-blue-300 hover:text-blue-600'}`}>
                   {plan.price === 'Custom' ? 'Contact Sales' : 'Start Free Trial'}
                 </Link>
               </motion.div>

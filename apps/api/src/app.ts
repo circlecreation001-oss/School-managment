@@ -13,21 +13,48 @@ const app = express();
 // ─── Trust proxy (for rate limiting behind reverse proxy) ───
 app.set('trust proxy', 1);
 
+// ─── CORS (MUST be before all other middleware) ───
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (server-to-server, curl, mobile apps)
+    if (!origin) return callback(null, true);
+
+    const allowedOrigins = env.corsOrigins;
+
+    // In development, allow all
+    if (env.nodeEnv === 'development') return callback(null, true);
+
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    // Also allow any *.vercel.app preview deployments
+    if (origin.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
+
+    logger.warn({ origin, allowedOrigins }, 'CORS blocked request from origin');
+    return callback(null, false);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-tenant-id', 'x-request-id'],
+  exposedHeaders: ['x-request-id'],
+  maxAge: 86400, // Cache preflight for 24 hours
+};
+
+// Handle OPTIONS preflight for ALL routes (returns 204)
+app.options('*', cors(corsOptions));
+
+// Apply CORS to all requests
+app.use(cors(corsOptions));
+
 // ─── Security headers ───
 app.use(helmet());
 
 // ─── Request ID ───
 app.use(requestId);
-
-// ─── CORS ───
-app.use(
-  cors({
-    origin: env.corsOrigins,
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-tenant-id', 'x-request-id'],
-  }),
-);
 
 // ─── Body parsing ───
 app.use(express.json({ limit: '10mb' }));

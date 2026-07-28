@@ -16,6 +16,7 @@ console.log('REDIS_URL loaded:', !!process.env.REDIS_URL);
 console.log('JWT_ACCESS_SECRET loaded:', !!process.env.JWT_ACCESS_SECRET);
 console.log('JWT_REFRESH_SECRET loaded:', !!process.env.JWT_REFRESH_SECRET);
 console.log('ENCRYPTION_KEY loaded:', !!process.env.ENCRYPTION_KEY);
+console.log('CORS_ORIGINS:', process.env.CORS_ORIGINS || '(not set)');
 
 // Log DB connection info (without password)
 if (process.env.DATABASE_URL) {
@@ -87,7 +88,10 @@ export const env = {
   rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
 
   // CORS
-  corsOrigins: (process.env.CORS_ORIGINS || (isProduction ? '' : 'http://localhost:3000')).split(',').filter(Boolean),
+  corsOrigins: (process.env.CORS_ORIGINS || (isProduction ? '' : 'http://localhost:3000'))
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean),
 
   // Encryption
   encryptionKey: process.env.ENCRYPTION_KEY || (isProduction ? '' : 'dev-encryption-key-32-chars-min!'),

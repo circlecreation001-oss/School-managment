@@ -2,8 +2,8 @@
 import type { Prisma } from '@erp/database';
 
 export class AttendanceRepository {
-  // â”€â”€â”€ Student Attendance â”€â”€â”€
-  async markStudentAttendance(data: any /* Prisma.AttendanceUncheckedCreateInput */) {
+  // --- Student Attendance ---
+  async markStudentAttendance(data: any) {
     return prisma.attendance.upsert({
       where: { student_date_unique: { studentId: data.studentId!, attendanceDate: data.attendanceDate } },
       update: { status: data.status, remarks: data.remarks, markedBy: data.markedBy },
@@ -11,8 +11,9 @@ export class AttendanceRepository {
     });
   }
 
-  async getStudentDailyAttendance(tenantId: string, branchId: string, date: Date, classId?: string, sectionId?: string) {
-    const where: Prisma.AttendanceWhereInput = { tenantId, branchId, attendanceDate: date, studentId: { not: null } };
+  async getStudentDailyAttendance(tenantId: string, branchId: string | null, date: Date, classId?: string, sectionId?: string) {
+    const where: Prisma.AttendanceWhereInput = { tenantId, attendanceDate: date, studentId: { not: null } };
+    if (branchId) where.branchId = branchId;
     if (classId) where.classId = classId;
     return prisma.attendance.findMany({
       where,
@@ -36,8 +37,8 @@ export class AttendanceRepository {
     });
   }
 
-  // â”€â”€â”€ Teacher Attendance â”€â”€â”€
-  async markTeacherAttendance(data: any /* Prisma.AttendanceUncheckedCreateInput */) {
+  // --- Teacher Attendance ---
+  async markTeacherAttendance(data: any) {
     return prisma.attendance.upsert({
       where: { teacher_date_unique: { teacherId: data.teacherId!, attendanceDate: data.attendanceDate } },
       update: { status: data.status, remarks: data.remarks, markedBy: data.markedBy },
@@ -45,9 +46,11 @@ export class AttendanceRepository {
     });
   }
 
-  async getTeacherDailyAttendance(tenantId: string, branchId: string, date: Date) {
+  async getTeacherDailyAttendance(tenantId: string, branchId: string | null, date: Date) {
+    const where: Prisma.AttendanceWhereInput = { tenantId, attendanceDate: date, teacherId: { not: null } };
+    if (branchId) where.branchId = branchId;
     return prisma.attendance.findMany({
-      where: { tenantId, branchId, attendanceDate: date, teacherId: { not: null } },
+      where,
       include: { teacher: { select: { id: true, firstName: true, lastName: true, employeeCode: true } } },
       orderBy: { teacher: { firstName: 'asc' } },
     });
@@ -60,8 +63,8 @@ export class AttendanceRepository {
     });
   }
 
-  // â”€â”€â”€ Staff Attendance â”€â”€â”€
-  async markStaffAttendance(data: any /* Prisma.AttendanceUncheckedCreateInput */) {
+  // --- Staff Attendance ---
+  async markStaffAttendance(data: any) {
     return prisma.attendance.upsert({
       where: { staff_date_unique: { staffId: data.staffId!, attendanceDate: data.attendanceDate } },
       update: { status: data.status, remarks: data.remarks, markedBy: data.markedBy },
@@ -69,19 +72,22 @@ export class AttendanceRepository {
     });
   }
 
-  async getStaffDailyAttendance(tenantId: string, branchId: string, date: Date) {
+  async getStaffDailyAttendance(tenantId: string, branchId: string | null, date: Date) {
+    const where: Prisma.AttendanceWhereInput = { tenantId, attendanceDate: date, staffId: { not: null } };
+    if (branchId) where.branchId = branchId;
     return prisma.attendance.findMany({
-      where: { tenantId, branchId, attendanceDate: date, staffId: { not: null } },
+      where,
       include: { staff: { select: { id: true, firstName: true, lastName: true, employeeCode: true } } },
     });
   }
 
-  // â”€â”€â”€ Analytics â”€â”€â”€
-  async getAttendanceStats(tenantId: string, branchId: string, startDate: Date, endDate: Date, classId?: string) {
+  // --- Analytics ---
+  async getAttendanceStats(tenantId: string, branchId: string | null, startDate: Date, endDate: Date, classId?: string) {
     const where: Prisma.AttendanceWhereInput = {
-      tenantId, branchId, studentId: { not: null },
+      tenantId, studentId: { not: null },
       attendanceDate: { gte: startDate, lte: endDate },
     };
+    if (branchId) where.branchId = branchId;
     if (classId) where.classId = classId;
 
     const total = await prisma.attendance.count({ where });
@@ -94,11 +100,12 @@ export class AttendanceRepository {
     return { total, present, absent, late, halfDay, onLeave, percentage: total > 0 ? Math.round((present / total) * 100) : 0 };
   }
 
-  async getDailyTrend(tenantId: string, branchId: string, startDate: Date, endDate: Date, classId?: string) {
+  async getDailyTrend(tenantId: string, branchId: string | null, startDate: Date, endDate: Date, classId?: string) {
     const where: Prisma.AttendanceWhereInput = {
-      tenantId, branchId, studentId: { not: null },
+      tenantId, studentId: { not: null },
       attendanceDate: { gte: startDate, lte: endDate },
     };
+    if (branchId) where.branchId = branchId;
     if (classId) where.classId = classId;
 
     return prisma.attendance.groupBy({
@@ -109,10 +116,11 @@ export class AttendanceRepository {
     });
   }
 
-  async getAbsentees(tenantId: string, branchId: string, date: Date, classId?: string) {
+  async getAbsentees(tenantId: string, branchId: string | null, date: Date, classId?: string) {
     const where: Prisma.AttendanceWhereInput = {
-      tenantId, branchId, attendanceDate: date, status: 'absent', studentId: { not: null },
+      tenantId, attendanceDate: date, status: 'absent', studentId: { not: null },
     };
+    if (branchId) where.branchId = branchId;
     if (classId) where.classId = classId;
     return prisma.attendance.findMany({
       where,
@@ -120,17 +128,23 @@ export class AttendanceRepository {
     });
   }
 
-  // â”€â”€â”€ Holidays â”€â”€â”€
+  // --- Holidays ---
   async getHolidays(tenantId: string, branchId: string | null, startDate: Date, endDate: Date) {
     const where: Prisma.HolidayWhereInput = { tenantId, date: { gte: startDate, lte: endDate } };
-    if (branchId) where.OR = [{ branchId }, { branchId: null }];
+    if (branchId) {
+      where.OR = [{ branchId }, { branchId: null }];
+    }
     return prisma.holiday.findMany({ where, orderBy: { date: 'asc' } });
   }
 
   async isHoliday(tenantId: string, branchId: string | null, date: Date): Promise<boolean> {
-    const count = await prisma.holiday.count({
-      where: { tenantId, date, OR: [{ branchId }, { branchId: null }] },
-    });
+    const where: Prisma.HolidayWhereInput = { tenantId, date };
+    if (branchId) {
+      where.OR = [{ branchId }, { branchId: null }];
+    } else {
+      where.branchId = null;
+    }
+    const count = await prisma.holiday.count({ where });
     return count > 0;
   }
 }

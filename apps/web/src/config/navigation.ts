@@ -15,49 +15,86 @@ export interface NavGroup {
 
 export const NAVIGATION: NavGroup[] = [
   {
-    label: 'Main',
+    label: 'Overview',
     items: [
       { label: 'Dashboard', href: '/dashboard', icon: 'LayoutDashboard' },
-      { label: 'Users', href: '/users', icon: 'Users', permissions: ['users:view'] },
-      { label: 'Academics', href: '/academics', icon: 'BookOpen', permissions: ['settings:view'] },
     ],
   },
   {
-    label: 'Academic',
+    label: 'Student Management',
     items: [
       { label: 'Students', href: '/students', icon: 'GraduationCap', permissions: ['students:view'] },
-      { label: 'Teachers', href: '/teachers', icon: 'Users', permissions: ['teachers:view'] },
+      { label: 'Admissions', href: '/admissions', icon: 'UserPlus', permissions: ['admissions:view'] },
       { label: 'Parents', href: '/parents', icon: 'UserCheck', permissions: ['parents:view'] },
-      { label: 'Attendance', href: '/attendance', icon: 'CalendarCheck', permissions: ['attendance:view'] },
-      { label: 'Exams', href: '/exams', icon: 'FileText', permissions: ['exams:view'] },
-      { label: 'Homework', href: '/homework', icon: 'BookOpen', permissions: ['homework:view'] },
-      { label: 'Study Material', href: '/study-materials', icon: 'FolderOpen', permissions: ['study_materials:view'] },
+      { label: 'Import Data', href: '/import', icon: 'Upload', permissions: ['students:create'] },
     ],
   },
   {
-    label: 'Finance',
+    label: 'Academics',
     items: [
-      { label: 'Fees', href: '/fees', icon: 'IndianRupee', permissions: ['fees:view'] },
+      { label: 'Classes & Sections', href: '/academics', icon: 'BookOpen', permissions: ['settings:view'] },
+      { label: 'Homework', href: '/homework', icon: 'FileEdit', permissions: ['homework:view'] },
+      { label: 'Study Materials', href: '/study-materials', icon: 'FolderOpen', permissions: ['study_materials:view'] },
+    ],
+  },
+  {
+    label: 'Attendance',
+    items: [
+      { label: 'Attendance', href: '/attendance', icon: 'CalendarCheck', permissions: ['attendance:view'] },
+    ],
+  },
+  {
+    label: 'Examinations',
+    items: [
+      { label: 'Exams & Results', href: '/exams', icon: 'FileText', permissions: ['exams:view'] },
+    ],
+  },
+  {
+    label: 'Fees & Finance',
+    items: [
+      { label: 'Fee Collection', href: '/fees', icon: 'IndianRupee', permissions: ['fees:view'] },
+    ],
+  },
+  {
+    label: 'Teachers & HR',
+    items: [
+      { label: 'Teachers', href: '/teachers', icon: 'Users', permissions: ['teachers:view'] },
+      { label: 'HR & Payroll', href: '/hr', icon: 'Briefcase', permissions: ['teachers:view'] },
+      { label: 'Users & Roles', href: '/users', icon: 'Shield', permissions: ['users:view'] },
     ],
   },
   {
     label: 'Resources',
     items: [
       { label: 'Library', href: '/library', icon: 'Library', permissions: ['library:view'] },
+    ],
+  },
+  {
+    label: 'Communication',
+    items: [
       { label: 'Notifications', href: '/notifications', icon: 'Bell', permissions: ['notifications:view'] },
     ],
   },
   {
-    label: 'Administration',
+    label: 'Reports & Analytics',
     items: [
       { label: 'Reports', href: '/reports', icon: 'BarChart3', permissions: ['reports:view'] },
-      { label: 'Website', href: '/website', icon: 'Globe', permissions: ['website:view'] },
-      { label: 'Admissions', href: '/admissions', icon: 'UserPlus', permissions: ['admissions:view'] },
+    ],
+  },
+  {
+    label: 'Website & CMS',
+    items: [
+      { label: 'Website Manager', href: '/website', icon: 'Globe', permissions: ['website:view'] },
+    ],
+  },
+  {
+    label: 'Settings',
+    items: [
       { label: 'Settings', href: '/settings', icon: 'Settings', permissions: ['settings:view'] },
     ],
   },
   {
-    label: 'Super Admin',
+    label: 'Platform (Super Admin)',
     items: [
       { label: 'Platform Overview', href: '/super-admin', icon: 'LayoutDashboard', roles: ['super_admin'] },
       { label: 'Organizations', href: '/super-admin/organizations', icon: 'Globe', roles: ['super_admin'] },

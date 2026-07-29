@@ -5,7 +5,8 @@ import {
   FileText, BookOpen, FolderOpen, IndianRupee, Library, Bell,
   BarChart3, Globe, UserPlus, Settings, Menu, X, Search,
   Moon, Sun, Monitor, ChevronLeft, ChevronRight, LogOut,
-  User, ChevronsUpDown, type LucideIcon,
+  User, ChevronsUpDown, Upload, FileEdit, Briefcase, Shield,
+  type LucideIcon,
 } from 'lucide-react';
 
 const iconMap: Record<string, LucideIcon> = {
@@ -35,6 +36,10 @@ const iconMap: Record<string, LucideIcon> = {
   LogOut,
   User,
   ChevronsUpDown,
+  Upload,
+  FileEdit,
+  Briefcase,
+  Shield,
 };
 
 interface SidebarIconProps {

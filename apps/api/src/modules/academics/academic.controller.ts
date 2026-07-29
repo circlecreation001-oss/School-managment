@@ -1,6 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
 import { academicService } from './academic.service.js';
 import { sendSuccess, sendCreated } from '../../utils/response.js';
+import { prisma } from '@erp/database';
+
+/** Resolve branchId from query, user context, or first branch in tenant */
+async function resolveBranch(req: Request): Promise<string> {
+  const fromQuery = req.query.branchId as string;
+  if (fromQuery) return fromQuery;
+  const fromUser = req.user?.branchId;
+  if (fromUser) return fromUser;
+  // Fallback: get first branch for this tenant
+  const branch = await prisma.branch.findFirst({ where: { tenantId: req.user!.tenantId, status: 'active' }, select: { id: true } });
+  return branch?.id || '';
+}
 
 export class AcademicController {
   // Sessions
@@ -22,7 +34,7 @@ export class AcademicController {
     try { sendSuccess(res, await academicService.listDepartments(req.user!.tenantId, req.query.branchId as string)); } catch (e) { next(e); }
   }
   async createDepartment(req: Request, res: Response, next: NextFunction) {
-    try { sendCreated(res, await academicService.createDepartment(req.user!.tenantId, req.query.branchId as string, req.body, req.user!.id)); } catch (e) { next(e); }
+    try { const branchId = await resolveBranch(req); sendCreated(res, await academicService.createDepartment(req.user!.tenantId, branchId, req.body, req.user!.id)); } catch (e) { next(e); }
   }
   async updateDepartment(req: Request, res: Response, next: NextFunction) {
     try { sendSuccess(res, await academicService.updateDepartment(req.user!.tenantId, req.params.id!, req.body, req.user!.id)); } catch (e) { next(e); }
@@ -53,7 +65,7 @@ export class AcademicController {
     try { sendSuccess(res, await academicService.getClass(req.user!.tenantId, req.params.id!)); } catch (e) { next(e); }
   }
   async createClass(req: Request, res: Response, next: NextFunction) {
-    try { sendCreated(res, await academicService.createClass(req.user!.tenantId, req.query.branchId as string, req.body, req.user!.id)); } catch (e) { next(e); }
+    try { const branchId = await resolveBranch(req); sendCreated(res, await academicService.createClass(req.user!.tenantId, branchId, req.body, req.user!.id)); } catch (e) { next(e); }
   }
   async updateClass(req: Request, res: Response, next: NextFunction) {
     try { sendSuccess(res, await academicService.updateClass(req.user!.tenantId, req.params.id!, req.body, req.user!.id)); } catch (e) { next(e); }
@@ -67,7 +79,7 @@ export class AcademicController {
     try { sendSuccess(res, await academicService.listSections(req.user!.tenantId, req.params.classId!)); } catch (e) { next(e); }
   }
   async createSection(req: Request, res: Response, next: NextFunction) {
-    try { sendCreated(res, await academicService.createSection(req.user!.tenantId, req.query.branchId as string, req.body, req.user!.id)); } catch (e) { next(e); }
+    try { const branchId = await resolveBranch(req); sendCreated(res, await academicService.createSection(req.user!.tenantId, branchId, req.body, req.user!.id)); } catch (e) { next(e); }
   }
   async updateSection(req: Request, res: Response, next: NextFunction) {
     try { sendSuccess(res, await academicService.updateSection(req.user!.tenantId, req.params.id!, req.body, req.user!.id)); } catch (e) { next(e); }
@@ -81,7 +93,7 @@ export class AcademicController {
     try { sendSuccess(res, await academicService.listSubjects(req.user!.tenantId, req.query.branchId as string, req.query.classId as string)); } catch (e) { next(e); }
   }
   async createSubject(req: Request, res: Response, next: NextFunction) {
-    try { sendCreated(res, await academicService.createSubject(req.user!.tenantId, req.query.branchId as string, req.body, req.user!.id)); } catch (e) { next(e); }
+    try { const branchId = await resolveBranch(req); sendCreated(res, await academicService.createSubject(req.user!.tenantId, branchId, req.body, req.user!.id)); } catch (e) { next(e); }
   }
   async updateSubject(req: Request, res: Response, next: NextFunction) {
     try { sendSuccess(res, await academicService.updateSubject(req.user!.tenantId, req.params.id!, req.body, req.user!.id)); } catch (e) { next(e); }

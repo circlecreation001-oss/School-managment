@@ -17,7 +17,12 @@ export class StudentController {
 
   async admit(req: Request, res: Response, next: NextFunction) {
     try {
-      const branchId = req.query.branchId as string || req.user!.branchId || '';
+      let branchId = req.query.branchId as string || req.user!.branchId || '';
+      if (!branchId) {
+        const { prisma } = await import('@erp/database');
+        const branch = await prisma.branch.findFirst({ where: { tenantId: req.user!.tenantId, status: 'active' }, select: { id: true } });
+        branchId = branch?.id || '';
+      }
       sendCreated(res, await studentService.admit(req.user!.tenantId, branchId, req.body, req.user!.id), 'Student admitted');
     } catch (e) { next(e); }
   }

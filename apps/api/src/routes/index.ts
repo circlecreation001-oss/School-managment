@@ -16,6 +16,7 @@ import { notificationRouter } from '../modules/notifications/index.js';
 import { websiteRouter } from '../modules/website/index.js';
 import { homeworkRouter } from '../modules/homework/index.js';
 import { materialRouter } from '../modules/study-materials/index.js';
+import { importRouter } from '../modules/imports/index.js';
 
 const router = Router();
 
@@ -36,5 +37,6 @@ router.use('/notifications', notificationRouter);
 router.use('/website', websiteRouter);
 router.use('/homework', homeworkRouter);
 router.use('/study-materials', materialRouter);
+router.use('/imports', importRouter);
 
 export { router as apiRouter };

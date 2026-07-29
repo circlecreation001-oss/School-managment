@@ -23,6 +23,9 @@ async function bootstrap(): Promise<void> {
     // Ensure Platform Super Admin exists (env-driven, no hardcoded credentials)
     await ensurePlatformSuperAdmin();
 
+    // Repair any tenants missing permissions (one-time migration for pre-fix tenants)
+    await repairTenantPermissions();
+
     // Start BullMQ workers
     startWorkers();
     logger.info('BullMQ workers initialized');
@@ -174,6 +177,61 @@ async function ensurePlatformSuperAdmin(): Promise<void> {
     logger.info('[BOOT] Platform Super Admin created successfully');
   } catch (err: any) {
     logger.error({ err: err.message, stack: err.stack }, '[BOOT] ensurePlatformSuperAdmin failed');
+  }
+}
+
+/**
+ * Repairs tenants that were created before the permission seeding fix.
+ * Checks every tenant: if tenant_admin role has 0 permissions, seeds all permissions.
+ */
+async function repairTenantPermissions(): Promise<void> {
+  try {
+    const MODULES = ['users','students','teachers','parents','attendance','fees','exams','homework','study_materials','library','notifications','reports','settings','website','admissions'];
+    const ACTIONS = ['view','create','edit','delete','approve','export','configure','manage'];
+
+    // Find all tenants
+    const tenants = await prisma.tenant.findMany({ select: { id: true, slug: true } });
+
+    for (const tenant of tenants) {
+      // Check if tenant_admin role has permissions
+      const adminRole = await prisma.role.findUnique({
+        where: { tenantId_code: { tenantId: tenant.id, code: 'tenant_admin' } },
+        include: { rolePermissions: { take: 1 } },
+      });
+
+      if (!adminRole) continue; // No tenant_admin role = skip
+      if (adminRole.rolePermissions.length > 0) continue; // Already has permissions = skip
+
+      // This tenant needs repair
+      logger.info({ tenantId: tenant.id, slug: tenant.slug }, '[BOOT] Repairing tenant permissions');
+
+      // Create all permissions if missing
+      let permCount = await prisma.permission.count({ where: { tenantId: tenant.id } });
+      if (permCount === 0) {
+        for (const mod of MODULES) {
+          for (const act of ACTIONS) {
+            await prisma.permission.create({
+              data: { tenantId: tenant.id, code: `${mod}:${act}`, name: `${act} ${mod}`, module: mod, action: act },
+            });
+          }
+        }
+        logger.info({ tenantId: tenant.id }, '[BOOT] Created 120 permissions');
+      }
+
+      // Assign all permissions to tenant_admin role
+      const allPerms = await prisma.permission.findMany({ where: { tenantId: tenant.id }, select: { id: true } });
+      for (const perm of allPerms) {
+        await prisma.rolePermission.upsert({
+          where: { roleId_permissionId: { roleId: adminRole.id, permissionId: perm.id } },
+          update: {},
+          create: { roleId: adminRole.id, permissionId: perm.id },
+        });
+      }
+
+      logger.info({ tenantId: tenant.id, permCount: allPerms.length }, '[BOOT] tenant_admin permissions repaired');
+    }
+  } catch (err: any) {
+    logger.error({ err: err.message }, '[BOOT] repairTenantPermissions failed');
   }
 }
 

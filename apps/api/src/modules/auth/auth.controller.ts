@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { authService } from './auth.service.js';
+import { otpService } from './otp.service.js';
 import { sendSuccess, sendCreated } from '../../utils/response.js';
 
 export class AuthController {
@@ -133,6 +134,57 @@ export class AuthController {
     } catch (err) {
       next(err);
     }
+  }
+
+  // ─── OTP ENDPOINTS ───
+
+  async sendOtp(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email, purpose } = req.body;
+      if (!email || !purpose) {
+        res.status(400).json({ success: false, error: { code: 'BAD_REQUEST', message: 'email and purpose are required' } });
+        return;
+      }
+      const validPurposes = ['signup', 'login', 'reset', 'invite'];
+      if (!validPurposes.includes(purpose)) {
+        res.status(400).json({ success: false, error: { code: 'BAD_REQUEST', message: 'Invalid purpose' } });
+        return;
+      }
+      const otp = await otpService.generateOtp(email, purpose);
+      await otpService.sendOtpEmail(email, otp, purpose);
+      sendSuccess(res, { sent: true, expiresIn: 300 }, 'OTP sent to your email.');
+    } catch (err) { next(err); }
+  }
+
+  async verifyOtp(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email, otp, purpose } = req.body;
+      if (!email || !otp || !purpose) {
+        res.status(400).json({ success: false, error: { code: 'BAD_REQUEST', message: 'email, otp, and purpose are required' } });
+        return;
+      }
+      await otpService.verifyOtp(email, otp, purpose);
+      sendSuccess(res, { verified: true }, 'OTP verified successfully.');
+    } catch (err) { next(err); }
+  }
+
+  async signupWithOtp(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { otpCode } = req.body;
+      if (!otpCode) {
+        res.status(400).json({ success: false, error: { code: 'BAD_REQUEST', message: 'otpCode is required for OTP signup' } });
+        return;
+      }
+
+      // Verify OTP first
+      await otpService.verifyOtp(req.body.email, otpCode, 'signup');
+
+      // OTP verified - proceed with signup
+      const ip = req.ip || req.socket.remoteAddress || 'unknown';
+      const userAgent = req.headers['user-agent'] || 'unknown';
+      const result = await authService.signupInstitute(req.body, { ip, userAgent });
+      sendCreated(res, result, 'Email verified. Institute registered successfully.');
+    } catch (err) { next(err); }
   }
 }
 

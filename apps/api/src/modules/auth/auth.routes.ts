@@ -45,6 +45,11 @@ router.post('/forgot-password', passwordLimiter, validate(forgotPasswordSchema),
 router.post('/reset-password', passwordLimiter, validate(resetPasswordSchema), authController.resetPassword);
 router.post('/verify-email', validate(verifyEmailSchema), authController.verifyEmail);
 
+// OTP routes
+router.post('/otp/send', authLimiter, authController.sendOtp);
+router.post('/otp/verify', authLimiter, authController.verifyOtp);
+router.post('/signup-with-otp', authLimiter, validate(signupInstituteSchema), authController.signupWithOtp);
+
 // Protected routes
 router.post('/logout', authenticate, validate(logoutSchema), authController.logout);
 router.post('/change-password', authenticate, validate(changePasswordSchema), authController.changePassword);

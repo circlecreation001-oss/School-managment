@@ -23,10 +23,10 @@ export const NAVIGATION: NavGroup[] = [
   {
     label: 'Student Management',
     items: [
-      { label: 'Students', href: '/students', icon: 'GraduationCap', permissions: ['students:view'] },
+      { label: 'All Students', href: '/students', icon: 'GraduationCap', permissions: ['students:view'] },
       { label: 'Admissions', href: '/admissions', icon: 'UserPlus', permissions: ['admissions:view'] },
       { label: 'Parents', href: '/parents', icon: 'UserCheck', permissions: ['parents:view'] },
-      { label: 'Import Data', href: '/import', icon: 'Upload', permissions: ['students:create'] },
+      { label: 'Import / Export', href: '/import', icon: 'Upload', permissions: ['students:create'] },
     ],
   },
   {
@@ -40,7 +40,7 @@ export const NAVIGATION: NavGroup[] = [
   {
     label: 'Attendance',
     items: [
-      { label: 'Attendance', href: '/attendance', icon: 'CalendarCheck', permissions: ['attendance:view'] },
+      { label: 'Mark Attendance', href: '/attendance', icon: 'CalendarCheck', permissions: ['attendance:view'] },
     ],
   },
   {
@@ -53,6 +53,7 @@ export const NAVIGATION: NavGroup[] = [
     label: 'Fees & Finance',
     items: [
       { label: 'Fee Collection', href: '/fees', icon: 'IndianRupee', permissions: ['fees:view'] },
+      { label: 'Accounting', href: '/accountant', icon: 'Calculator', permissions: ['fees:view'] },
     ],
   },
   {
@@ -64,7 +65,7 @@ export const NAVIGATION: NavGroup[] = [
     ],
   },
   {
-    label: 'Resources',
+    label: 'Library',
     items: [
       { label: 'Library', href: '/library', icon: 'Library', permissions: ['library:view'] },
     ],
@@ -76,25 +77,25 @@ export const NAVIGATION: NavGroup[] = [
     ],
   },
   {
-    label: 'Reports & Analytics',
+    label: 'Reports',
     items: [
-      { label: 'Reports', href: '/reports', icon: 'BarChart3', permissions: ['reports:view'] },
+      { label: 'Reports & Analytics', href: '/reports', icon: 'BarChart3', permissions: ['reports:view'] },
     ],
   },
   {
-    label: 'Website & CMS',
+    label: 'Website',
     items: [
-      { label: 'Website Manager', href: '/website', icon: 'Globe', permissions: ['website:view'] },
+      { label: 'Website CMS', href: '/website', icon: 'Globe', permissions: ['website:view'] },
     ],
   },
   {
     label: 'Settings',
     items: [
-      { label: 'Settings', href: '/settings', icon: 'Settings', permissions: ['settings:view'] },
+      { label: 'Institute Settings', href: '/settings', icon: 'Settings', permissions: ['settings:view'] },
     ],
   },
   {
-    label: 'Platform (Super Admin)',
+    label: 'Platform',
     items: [
       { label: 'Platform Overview', href: '/super-admin', icon: 'LayoutDashboard', roles: ['super_admin'] },
       { label: 'Organizations', href: '/super-admin/organizations', icon: 'Globe', roles: ['super_admin'] },

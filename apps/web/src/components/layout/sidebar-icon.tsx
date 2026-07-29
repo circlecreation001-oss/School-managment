@@ -6,6 +6,7 @@ import {
   BarChart3, Globe, UserPlus, Settings, Menu, X, Search,
   Moon, Sun, Monitor, ChevronLeft, ChevronRight, LogOut,
   User, ChevronsUpDown, Upload, FileEdit, Briefcase, Shield,
+  Calculator,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -40,6 +41,7 @@ const iconMap: Record<string, LucideIcon> = {
   FileEdit,
   Briefcase,
   Shield,
+  Calculator,
 };
 
 interface SidebarIconProps {

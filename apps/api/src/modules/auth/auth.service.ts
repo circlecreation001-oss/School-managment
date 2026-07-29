@@ -536,7 +536,21 @@ export class AuthService {
         },
       });
 
-      // 2. Create default roles for the tenant
+      // 2. Create default roles and permissions for the tenant
+      const MODULES = ['users','students','teachers','parents','attendance','fees','exams','homework','study_materials','library','notifications','reports','settings','website','admissions'];
+      const ACTIONS = ['view','create','edit','delete','approve','export','configure','manage'];
+
+      // Create all permissions
+      const allPermCodes: string[] = [];
+      for (const mod of MODULES) {
+        for (const act of ACTIONS) {
+          const code = `${mod}:${act}`;
+          allPermCodes.push(code);
+          await tx.permission.create({ data: { tenantId: tenant.id, code, name: `${act} ${mod}`, module: mod, action: act } });
+        }
+      }
+
+      // Create roles
       const defaultRoles = [
         { name: 'Tenant Admin', code: 'tenant_admin', isSystemRole: true },
         { name: 'Institution Admin', code: 'institution_admin', isSystemRole: true },
@@ -557,6 +571,15 @@ export class AuthService {
 
       for (const r of defaultRoles) {
         await tx.role.create({ data: { tenantId: tenant.id, ...r } });
+      }
+
+      // Assign ALL permissions to tenant_admin role
+      const tenantAdminRole = await tx.role.findUnique({ where: { tenantId_code: { tenantId: tenant.id, code: 'tenant_admin' } } });
+      if (tenantAdminRole) {
+        const allPerms = await tx.permission.findMany({ where: { tenantId: tenant.id } });
+        for (const perm of allPerms) {
+          await tx.rolePermission.create({ data: { roleId: tenantAdminRole.id, permissionId: perm.id } });
+        }
       }
 
       // 3. Create institution + branch
@@ -620,9 +643,7 @@ export class AuthService {
     });
 
     // ─── Auto-login: Generate tokens ───
-    const { roles, permissions } = result.adminRole
-      ? { roles: ['tenant_admin'], permissions: [] as string[] }
-      : await authRepository.getUserRoles(result.user.id);
+    const { roles, permissions } = await authRepository.getUserRoles(result.user.id);
 
     const sessionId = crypto.randomUUID();
     const refreshToken = crypto.randomBytes(64).toString('hex');

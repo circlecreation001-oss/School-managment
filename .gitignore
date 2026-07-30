@@ -46,3 +46,7 @@ uploads/
 
 # Misc
 *.tsbuildinfo
+
+.env
+.env.*
+!.env.example

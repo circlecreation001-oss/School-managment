@@ -92,7 +92,7 @@ export class WebsiteController {
       try {
         const { emailQueue } = await import('../../config/index.js');
         await emailQueue.add('enterprise-lead', {
-          to: process.env.SUPER_ADMIN_EMAIL || 'circlecreation001@gmail.com',
+          to: process.env.SUPER_ADMIN_EMAIL || 'admin@example.com',
           subject: `New Enterprise Lead: ${data.schoolName} (${data.students} students)`,
           body: `School: ${data.schoolName}\nContact: ${data.contactPerson}\nEmail: ${data.email}\nPhone: ${data.phone}\nStudents: ${data.students}\nBranches: ${data.branches}\nBudget: ${data.budget}\nModules: ${(data.modules || []).join(', ')}`,
           tenantId: tenant.id,

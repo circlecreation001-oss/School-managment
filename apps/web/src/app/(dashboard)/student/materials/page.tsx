@@ -5,27 +5,61 @@ import { PageHeader } from '@/components/layout';
 import { TableSkeleton, EmptyState } from '@/components/common';
 import { apiClient } from '@/lib/api-client';
 
+interface StudentProfile {
+  id: string;
+  classId: string;
+}
+
+interface StudyMaterial {
+  id: string;
+  title: string;
+  description?: string;
+  category?: string;
+  downloadCount?: number;
+  fileUrl?: string;
+  fileName?: string;
+}
+
 export default function StudentMaterialsPage() {
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<StudyMaterial[]>([]);
   const [loading, setLoading] = useState(true);
+  const [classId, setClassId] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
-      const res = await apiClient.get<any>('/study-materials?limit=30');
-      if (res.success) setItems(Array.isArray(res.data) ? res.data : []);
-      setLoading(false);
+      const meRes = await apiClient.get<StudentProfile>('/students/me');
+      if (meRes.success && meRes.data) {
+        setClassId(meRes.data.classId);
+      } else {
+        setLoading(false);
+      }
     };
     load();
   }, []);
 
+  useEffect(() => {
+    if (!classId) return;
+    const load = async () => {
+      setLoading(true);
+      const res = await apiClient.get<StudyMaterial[]>(`/study-materials?classId=${classId}&limit=30`);
+      if (res.success) {
+        setItems(Array.isArray(res.data) ? res.data : []);
+      }
+      setLoading(false);
+    };
+    load();
+  }, [classId]);
+
   return (
     <>
       <PageHeader title="Study Material" description="Download notes, PDFs, and resources shared by teachers." />
-      {loading ? <TableSkeleton rows={5} /> : items.length === 0 ? (
+      {loading ? (
+        <TableSkeleton rows={5} />
+      ) : items.length === 0 ? (
         <EmptyState title="No study materials available" description="Materials uploaded by your teachers will appear here." />
       ) : (
         <div className="space-y-3">
-          {items.map((mat: any) => (
+          {items.map((mat) => (
             <div key={mat.id} className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 p-4 hover:border-blue-200 transition-all">
               <div className="shrink-0 h-10 w-10 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-lg">📄</div>
               <div className="flex-1 min-w-0">
@@ -35,8 +69,12 @@ export default function StudentMaterialsPage() {
                   <span>{mat.downloadCount || 0} downloads</span>
                 </div>
               </div>
-              <a href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1'}/study-materials/${mat.id}/download`}
-                className="shrink-0 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-700">Download</a>
+              <a
+                href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1'}/study-materials/${mat.id}/download`}
+                className="shrink-0 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-medium hover:bg-blue-700"
+              >
+                Download
+              </a>
             </div>
           ))}
         </div>

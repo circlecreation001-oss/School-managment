@@ -78,4 +78,7 @@ router.post('/calendar', edit, validate(createCalendarEventSchema), academicCont
 router.patch('/calendar/:id', edit, validate(updateCalendarEventSchema), academicController.updateCalendarEvent);
 router.delete('/calendar/:id', edit, academicController.deleteCalendarEvent);
 
+// Timetable
+router.get('/timetable', view, academicController.getTimetable);
+
 export { router as academicRouter };

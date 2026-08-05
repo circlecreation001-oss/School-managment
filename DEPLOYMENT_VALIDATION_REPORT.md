@@ -66,19 +66,19 @@ The following variables are NOT in render.yaml but are required by the code:
   value: SchoolNex
 ```
 
-### 2. DATABASE_URL Must Use Direct Connection
+### 2. DATABASE_URL and DIRECT_URL Must Use Direct Connection
 
-Prisma transactions (used in signup) require a direct PostgreSQL connection, NOT PgBouncer:
+**CRITICAL**: Both `DATABASE_URL` and `DIRECT_URL` must use the **direct PostgreSQL connection** (port 5432), NOT the PgBouncer pooler (port 6543).
 
+**Why**: Prisma Client uses `DATABASE_URL` for all queries including `$transaction()` (used in signup). Prisma Migrate uses `DIRECT_URL` for DDL operations. PgBouncer does NOT support interactive transactions or DDL transactions.
+
+**Correct Configuration**:
 ```
 DATABASE_URL=postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres
+DIRECT_URL=postgresql://postgres:[PASSWORD]@db.[PROJECT_REF].supabase.co:5432/postgres
 ```
 
-The pooler URL should be set as DIRECT_URL:
-
-```
-DIRECT_URL=postgresql://postgres.[PROJECT_REF]:[PASSWORD]@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true
-```
+Both URLs should be identical - the direct connection. Do NOT use the pooler URL for either.
 
 ### 3. Build Command Must Generate Prisma Client
 

@@ -47,6 +47,11 @@ router.post('/:id/transfer', requirePermission(['students:approve']), validate(t
 router.get('/:id/certificates', view, studentController.getCertificates);
 router.get('/:id/timeline', view, studentController.getTimeline);
 
+// Admissions
+router.get('/admissions', view, studentController.listAdmissions);
+router.post('/admissions', create, studentController.createAdmission);
+router.patch('/admissions/:id', edit, studentController.updateAdmissionStatus);
+
 // Parents list
 router.get('/parents', view, studentController.listParents);
 

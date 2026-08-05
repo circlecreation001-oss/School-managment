@@ -95,6 +95,33 @@ export class StudentController {
     try { sendSuccess(res, await studentService.getStats(req.user!.tenantId, req.query.branchId as string)); } catch (e) { next(e); }
   }
 
+  // Admissions
+  async listAdmissions(req: Request, res: Response, next: NextFunction) {
+    try {
+      const branchId = req.query.branchId as string || req.user!.branchId || '';
+      const result = await studentService.listAdmissions(req.user!.tenantId, branchId, {
+        page: parseInt(req.query.page as string) || 1,
+        limit: parseInt(req.query.limit as string) || 10,
+        search: req.query.search as string,
+        status: req.query.status as string,
+      });
+      sendList(res, result.data, result.meta);
+    } catch (e) { next(e); }
+  }
+
+  async createAdmission(req: Request, res: Response, next: NextFunction) {
+    try {
+      const branchId = req.query.branchId as string || req.user!.branchId || '';
+      sendCreated(res, await studentService.createAdmission(req.user!.tenantId, branchId, req.body, req.user!.id));
+    } catch (e) { next(e); }
+  }
+
+  async updateAdmissionStatus(req: Request, res: Response, next: NextFunction) {
+    try {
+      sendSuccess(res, await studentService.updateAdmissionStatus(req.user!.tenantId, req.params.id!, req.body.status, req.user!.id));
+    } catch (e) { next(e); }
+  }
+
   // Parents list
   async listParents(req: Request, res: Response, next: NextFunction) {
     try {

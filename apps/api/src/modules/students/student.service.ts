@@ -300,6 +300,43 @@ export class StudentService {
     return { data, meta };
   }
 
+  // ─── ADMISSIONS ───
+  async listAdmissions(tenantId: string, branchId: string, params: { page?: number; limit?: number; search?: string; status?: string }) {
+    const page = params.page || 1;
+    const limit = params.limit || 10;
+    const where: any = { tenantId, branchId };
+    if (params.status) where.status = params.status;
+    if (params.search) {
+      where.OR = [
+        { applicantName: { contains: params.search, mode: 'insensitive' } },
+        { email: { contains: params.search, mode: 'insensitive' } },
+        { phone: { contains: params.search, mode: 'insensitive' } },
+      ];
+    }
+    const [data, total] = await Promise.all([
+      prisma.admission.findMany({ where, skip: (page - 1) * limit, take: limit, orderBy: { createdAt: 'desc' } }),
+      prisma.admission.count({ where }),
+    ]);
+    const meta = buildPaginationMeta(total, page, limit);
+    return { data, meta };
+  }
+
+  async createAdmission(tenantId: string, branchId: string, input: { applicantName: string; email?: string; phone?: string; guardianName?: string; guardianPhone?: string; classApplied?: string; source?: string }, actorId: string) {
+    const admission = await prisma.admission.create({
+      data: { tenantId, branchId, ...input, status: 'inquiry' },
+    });
+    await this.audit(tenantId, actorId, 'admission', admission.id, 'create');
+    return admission;
+  }
+
+  async updateAdmissionStatus(tenantId: string, id: string, status: string, actorId: string) {
+    const admission = await prisma.admission.findUnique({ where: { id } });
+    if (!admission || admission.tenantId !== tenantId) throw new AppError(404, 'NOT_FOUND', 'Admission not found');
+    const updated = await prisma.admission.update({ where: { id }, data: { status: status as any } });
+    await this.audit(tenantId, actorId, 'admission', id, 'update_status', { newStatus: status });
+    return updated;
+  }
+
   // ─── STATS ───
   async getStats(tenantId: string, branchId: string) {
     const byClass = await studentRepository.countByClass(tenantId, branchId);

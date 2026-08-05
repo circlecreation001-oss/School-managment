@@ -6,8 +6,7 @@ import { apiClient } from '@/lib/api-client';
 import { Pagination } from '@/components/ui/pagination';
 import { TableSearch } from '@/components/ui/table-search';
 import { usePermissions } from '@/hooks/use-permissions';
-import { UserPlus, SlidersHorizontal, CheckCircle, XCircle, Clock } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { UserPlus, CheckCircle, XCircle, Clock } from 'lucide-react';
 
 interface AdmissionItem {
   id: string;
@@ -45,6 +44,7 @@ function AdmissionsContent() {
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({ applicantName: '', email: '', phone: '', guardianName: '', guardianPhone: '', classApplied: '', source: 'walk_in' });
   const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState('');
 
   const fetchAdmissions = useCallback(async () => {
     setLoading(true);
@@ -56,9 +56,10 @@ function AdmissionsContent() {
       if (statusFilter) params.set('status', statusFilter);
 
       const res = await apiClient.get<any>(`/students/admissions?${params}`);
-      if (res.success && res.data) {
-        setItems(Array.isArray(res.data) ? res.data : res.data.items || []);
-        setTotal(res.data.total || 0);
+      if (res.success) {
+        const data = Array.isArray(res.data) ? res.data : (res.data as any)?.items || [];
+        setItems(data);
+        setTotal((res as any).meta?.total || (res.data as any)?.total || 0);
       }
     } catch {
       setItems([]);
@@ -78,10 +79,12 @@ function AdmissionsContent() {
     if (res.success) {
       setShowCreate(false);
       setForm({ applicantName: '', email: '', phone: '', guardianName: '', guardianPhone: '', classApplied: '', source: 'walk_in' });
-      toast.success('Admission created successfully');
+      setToast('Admission created successfully');
+      setTimeout(() => setToast(''), 3000);
       fetchAdmissions();
     } else {
-      toast.error(res.error?.message || 'Failed to create');
+      setToast(res.error?.message || 'Failed to create');
+      setTimeout(() => setToast(''), 3000);
     }
     setSaving(false);
   };
@@ -89,13 +92,15 @@ function AdmissionsContent() {
   const updateStatus = async (id: string, status: string) => {
     const res = await apiClient.patch<any>(`/students/admissions/${id}`, { status });
     if (res.success) {
-      toast.success(`Status updated to ${status}`);
+      setToast(`Status updated to ${status}`);
+      setTimeout(() => setToast(''), 3000);
       fetchAdmissions();
     }
   };
 
   return (
     <div className="bg-white dark:bg-slate-900 p-4 rounded-md flex-1 m-4 mt-0">
+      {toast && <div className="mb-4 rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">{toast}</div>}
       {/* TOP */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <h1 className="text-lg font-semibold">Admissions</h1>
@@ -114,7 +119,7 @@ function AdmissionsContent() {
             <option value="rejected">Rejected</option>
             <option value="enrolled">Enrolled</option>
           </select>
-          {hasPermission('admissions:create') && (
+          {hasPermission('students:create') && (
             <button
               onClick={() => setShowCreate(true)}
               className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow"
@@ -178,12 +183,12 @@ function AdmissionsContent() {
                 </td>
                 <td className="p-2">
                   <div className="flex items-center gap-1">
-                    {a.status === 'inquiry' && hasPermission('admissions:edit') && (
+                    {a.status === 'inquiry' && hasPermission('students:edit') && (
                       <button onClick={() => updateStatus(a.id, 'under_review')} className="w-7 h-7 rounded-full bg-lamaSky flex items-center justify-center" title="Review">
                         <Clock className="w-3.5 h-3.5" />
                       </button>
                     )}
-                    {a.status === 'under_review' && hasPermission('admissions:approve') && (
+                    {a.status === 'under_review' && hasPermission('students:edit') && (
                       <>
                         <button onClick={() => updateStatus(a.id, 'approved')} className="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center" title="Approve">
                           <CheckCircle className="w-3.5 h-3.5 text-green-700" />
@@ -193,7 +198,7 @@ function AdmissionsContent() {
                         </button>
                       </>
                     )}
-                    {a.status === 'approved' && hasPermission('admissions:edit') && (
+                    {a.status === 'approved' && hasPermission('students:edit') && (
                       <button onClick={() => updateStatus(a.id, 'enrolled')} className="w-7 h-7 rounded-full bg-lamaPurple flex items-center justify-center" title="Enroll">
                         <UserPlus className="w-3.5 h-3.5" />
                       </button>

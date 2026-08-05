@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { examService } from './exam.service.js';
 import { sendSuccess, sendCreated, sendList } from '../../utils/response.js';
+import { generateReportCardPDF, generateExamResultSheetPDF } from '../../utils/pdf.js';
+import { prisma } from '@erp/database';
 
 export class ExamController {
   async listExams(req: Request, res: Response, next: NextFunction) {

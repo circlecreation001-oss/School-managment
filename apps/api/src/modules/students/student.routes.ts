@@ -47,6 +47,9 @@ router.post('/:id/transfer', requirePermission(['students:approve']), validate(t
 router.get('/:id/certificates', view, studentController.getCertificates);
 router.get('/:id/timeline', view, studentController.getTimeline);
 
+// Parents list
+router.get('/parents', view, studentController.listParents);
+
 // Bulk
 router.post('/bulk/import', create, validate(bulkImportStudentsSchema), studentController.bulkImport);
 

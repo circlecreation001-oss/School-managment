@@ -24,8 +24,9 @@ export function UserCard({ type }: UserCardProps) {
       try {
         const endpoint = type === 'staff' ? '/users' : `/${type}s`;
         const res = await apiClient.get<any>(`${endpoint}?page=1&limit=1`);
-        if (res.success && res.data) {
-          setCount(res.data.total ?? res.data.count ?? 0);
+        if (res.success) {
+          const total = (res as any).meta?.total ?? res.data?.total ?? res.data?.count ?? 0;
+          setCount(total);
         } else {
           setCount(0);
         }

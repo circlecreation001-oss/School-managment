@@ -21,11 +21,10 @@ export function CountChart() {
     const fetchData = async () => {
       try {
         const res = await apiClient.get<any>('/students?page=1&limit=1');
-        if (res.success && res.data) {
-          // Use summary data if available, otherwise estimate
-          const total = res.data.total ?? 0;
-          const maleCount = res.data.maleCount ?? Math.round(total * 0.52);
-          const femaleCount = res.data.femaleCount ?? total - maleCount;
+        if (res.success) {
+          const total = (res as any).meta?.total ?? res.data?.total ?? 0;
+          const maleCount = res.data?.maleCount ?? Math.round(total * 0.52);
+          const femaleCount = res.data?.femaleCount ?? total - maleCount;
           setGenderData({ male: maleCount, female: femaleCount });
         }
       } catch {

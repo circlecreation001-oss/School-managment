@@ -273,6 +273,33 @@ export class StudentService {
     return studentRepository.exportStudents(tenantId, branchId, classId);
   }
 
+  // ─── PARENTS LIST ───
+  async listParents(tenantId: string, params: { page?: number; limit?: number; search?: string }) {
+    const page = params.page || 1;
+    const limit = params.limit || 10;
+    const where: any = { tenantId, deletedAt: null };
+    if (params.search) {
+      where.OR = [
+        { firstName: { contains: params.search, mode: 'insensitive' } },
+        { lastName: { contains: params.search, mode: 'insensitive' } },
+        { phone: { contains: params.search, mode: 'insensitive' } },
+        { email: { contains: params.search, mode: 'insensitive' } },
+      ];
+    }
+    const [data, total] = await Promise.all([
+      prisma.parent.findMany({
+        where,
+        include: { studentLinks: { include: { student: { select: { firstName: true, lastName: true } } } } },
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.parent.count({ where }),
+    ]);
+    const meta = buildPaginationMeta(total, page, limit);
+    return { data, meta };
+  }
+
   // ─── STATS ───
   async getStats(tenantId: string, branchId: string) {
     const byClass = await studentRepository.countByClass(tenantId, branchId);

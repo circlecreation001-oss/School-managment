@@ -26,18 +26,16 @@ export function AttendanceChart() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await apiClient.get<any>('/attendance/summary/weekly');
-        if (res.success && res.data && Array.isArray(res.data)) {
-          setData(res.data);
+        const today = new Date();
+        const endDate = today.toISOString().split('T')[0];
+        const startDate = new Date(today);
+        startDate.setDate(startDate.getDate() - 6);
+        const startStr = startDate.toISOString().split('T')[0];
+        const res = await apiClient.get<any>(`/attendance/analytics?startDate=${startStr}&endDate=${endDate}`);
+        if (res.success && res.data?.trend && Array.isArray(res.data.trend)) {
+          setData(res.data.trend);
         } else {
-          // Fallback: generate sample structure for display
-          setData([
-            { name: 'Mon', present: 0, absent: 0 },
-            { name: 'Tue', present: 0, absent: 0 },
-            { name: 'Wed', present: 0, absent: 0 },
-            { name: 'Thu', present: 0, absent: 0 },
-            { name: 'Fri', present: 0, absent: 0 },
-          ]);
+          setData([]);
         }
       } catch {
         setData([

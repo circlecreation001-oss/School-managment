@@ -41,9 +41,10 @@ function StudentsContent() {
       params.set('limit', '10');
       if (search) params.set('search', search);
       const res = await apiClient.get<any>(`/students?${params}`);
-      if (res.success && res.data) {
-        setStudents(res.data.items || res.data.students || []);
-        setTotal(res.data.total || 0);
+      if (res.success) {
+        const data = Array.isArray(res.data) ? res.data : (res.data as any)?.items || (res.data as any)?.students || [];
+        setStudents(data);
+        setTotal((res as any).meta?.total || (res.data as any)?.total || 0);
       }
     } catch { setStudents([]); }
     finally { setLoading(false); }

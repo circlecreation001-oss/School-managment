@@ -52,9 +52,10 @@ function TeachersContent() {
       if (search) params.set('search', search);
 
       const res = await apiClient.get<any>(`/teachers?${params}`);
-      if (res.success && res.data) {
-        setTeachers(res.data.items || res.data.teachers || []);
-        setTotal(res.data.total || 0);
+      if (res.success) {
+        const data = Array.isArray(res.data) ? res.data : (res.data as any)?.items || (res.data as any)?.teachers || [];
+        setTeachers(data);
+        setTotal((res as any).meta?.total || (res.data as any)?.total || 0);
       }
     } catch {
       setTeachers([]);

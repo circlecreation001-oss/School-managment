@@ -26,11 +26,11 @@ export function FinanceChart() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await apiClient.get<any>('/fees/analytics/monthly');
+        const year = new Date().getFullYear();
+        const res = await apiClient.get<any>(`/fees/reports/revenue?year=${year}`);
         if (res.success && res.data && Array.isArray(res.data)) {
           setData(res.data);
         } else {
-          // Fallback structure — will show empty chart
           const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
           setData(months.map((name) => ({ name, income: 0, expense: 0 })));
         }

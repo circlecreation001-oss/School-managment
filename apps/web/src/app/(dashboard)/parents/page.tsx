@@ -6,7 +6,7 @@ import { apiClient } from '@/lib/api-client';
 import { Pagination } from '@/components/ui/pagination';
 import { TableSearch } from '@/components/ui/table-search';
 import { usePermissions } from '@/hooks/use-permissions';
-import { SlidersHorizontal, ArrowDownAZ, Phone, Mail } from 'lucide-react';
+import { SlidersHorizontal, ArrowDownAZ, Phone } from 'lucide-react';
 
 interface ParentItem {
   id: string;
@@ -38,9 +38,10 @@ function ParentsContent() {
       if (search) params.set('search', search);
 
       const res = await apiClient.get<any>(`/students/parents?${params}`);
-      if (res.success && res.data) {
-        setParents(res.data.items || res.data.parents || (Array.isArray(res.data) ? res.data : []));
-        setTotal(res.data.total || 0);
+      if (res.success) {
+        const data = Array.isArray(res.data) ? res.data : (res.data as any)?.items || (res.data as any)?.parents || [];
+        setParents(data);
+        setTotal((res as any).meta?.total || (res.data as any)?.total || 0);
       }
     } catch {
       setParents([]);

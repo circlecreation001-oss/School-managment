@@ -7,7 +7,7 @@ import { apiClient } from '@/lib/api-client';
 import { Pagination } from '@/components/ui/pagination';
 import { FormModal } from '@/components/forms/form-modal';
 import { usePermissions } from '@/hooks/use-permissions';
-import { Search, Plus, Eye, Filter, Download, GraduationCap } from 'lucide-react';
+import { Search, Eye, Filter, Download, GraduationCap } from 'lucide-react';
 
 interface Student {
   id: string;
@@ -32,6 +32,7 @@ function StudentsContent() {
   const [students, setStudents] = useState<Student[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [relatedData, setRelatedData] = useState<any>({});
 
   const fetchStudents = useCallback(async () => {
     setLoading(true);
@@ -50,6 +51,20 @@ function StudentsContent() {
     finally { setLoading(false); }
   }, [page, search]);
 
+  useEffect(() => {
+    const loadRelated = async () => {
+      const [sessionsRes, classesRes] = await Promise.all([
+        apiClient.get<any>('/academics/sessions'),
+        apiClient.get<any>('/academics/classes'),
+      ]);
+      setRelatedData({
+        sessions: sessionsRes.success ? (Array.isArray(sessionsRes.data) ? sessionsRes.data : []) : [],
+        classes: classesRes.success ? (Array.isArray(classesRes.data) ? classesRes.data : []) : [],
+      });
+    };
+    loadRelated();
+  }, []);
+
   useEffect(() => { fetchStudents(); }, [fetchStudents]);
 
   return (
@@ -65,7 +80,7 @@ function StudentsContent() {
             <Download className="h-4 w-4" /> Export
           </button>
           {hasPermission('students:create') && (
-            <FormModal table="student" type="create" onSuccess={fetchStudents} />
+            <FormModal table="student" type="create" relatedData={relatedData} onSuccess={fetchStudents} />
           )}
         </div>
       </div>
@@ -151,7 +166,7 @@ function StudentsContent() {
                           <Eye className="h-4 w-4" />
                         </Link>
                         {hasPermission('students:edit') && (
-                          <FormModal table="student" type="update" data={s} onSuccess={fetchStudents} />
+                          <FormModal table="student" type="update" data={s} relatedData={relatedData} onSuccess={fetchStudents} />
                         )}
                         {hasPermission('students:delete') && (
                           <FormModal table="student" type="delete" id={s.id} onSuccess={fetchStudents} />

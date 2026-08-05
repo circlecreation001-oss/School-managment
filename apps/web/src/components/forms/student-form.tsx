@@ -10,13 +10,13 @@ import { InputField } from './input-field';
 const studentSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
-  admissionNumber: z.string().min(1, 'Admission number is required'),
+  classId: z.string().min(1, 'Class is required'),
+  academicSessionId: z.string().min(1, 'Academic session is required'),
   email: z.string().email('Invalid email').optional().or(z.literal('')),
   phone: z.string().optional(),
   gender: z.enum(['male', 'female', 'other']).optional(),
   dob: z.string().optional(),
   address: z.string().optional(),
-  classId: z.string().optional(),
   sectionId: z.string().optional(),
 });
 
@@ -25,7 +25,7 @@ type StudentFormData = z.infer<typeof studentSchema>;
 interface StudentFormProps {
   type: 'create' | 'update';
   data?: any;
-  relatedData?: { classes?: any[]; sections?: any[] };
+  relatedData?: any;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -44,13 +44,13 @@ export default function StudentForm({ type, data, relatedData, onClose, onSucces
       ? {
           firstName: data.firstName || '',
           lastName: data.lastName || '',
-          admissionNumber: data.admissionNumber || '',
+          classId: data.classId || '',
+          academicSessionId: data.academicSessionId || '',
           email: data.email || '',
           phone: data.phone || '',
           gender: data.gender || undefined,
           dob: data.dob ? new Date(data.dob).toISOString().split('T')[0] : '',
           address: data.address || '',
-          classId: data.classId || '',
           sectionId: data.sectionId || '',
         }
       : undefined,
@@ -71,7 +71,7 @@ export default function StudentForm({ type, data, relatedData, onClose, onSucces
       if (res.success) {
         onSuccess();
       } else {
-        setError(res.error?.message || 'Operation failed');
+        setError(res.error?.message || res.error?.details?.map((d: any) => d.message).join(', ') || 'Operation failed');
       }
     } catch {
       setError('An unexpected error occurred');
@@ -79,6 +79,9 @@ export default function StudentForm({ type, data, relatedData, onClose, onSucces
       setLoading(false);
     }
   };
+
+  const classes = relatedData?.classes || [];
+  const sessions = relatedData?.sessions || [];
 
   return (
     <form className="flex flex-col gap-6" onSubmit={handleSubmit(onSubmit)}>
@@ -90,7 +93,6 @@ export default function StudentForm({ type, data, relatedData, onClose, onSucces
 
       <span className="text-xs text-gray-400 font-medium">Personal Information</span>
       <div className="flex justify-between flex-wrap gap-4">
-        <InputField label="Admission No." register={register} name="admissionNumber" error={errors.admissionNumber} />
         <InputField label="First Name" register={register} name="firstName" error={errors.firstName} />
         <InputField label="Last Name" register={register} name="lastName" error={errors.lastName} />
         <InputField label="Email" type="email" register={register} name="email" error={errors.email} />
@@ -114,18 +116,30 @@ export default function StudentForm({ type, data, relatedData, onClose, onSucces
       <span className="text-xs text-gray-400 font-medium">Academic Information</span>
       <div className="flex justify-between flex-wrap gap-4">
         <div className="flex flex-col gap-2 w-full md:w-1/4">
-          <label className="text-xs text-gray-500">Class</label>
+          <label className="text-xs text-gray-500">Academic Session *</label>
+          <select
+            {...register('academicSessionId')}
+            className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full focus:ring-primary-500 focus:outline-none"
+          >
+            <option value="">Select Session</option>
+            {sessions.map((ses: any) => (
+              <option key={ses.id} value={ses.id}>{ses.name}</option>
+            ))}
+          </select>
+          {errors.academicSessionId && <p className="text-xs text-red-400">{errors.academicSessionId.message}</p>}
+        </div>
+        <div className="flex flex-col gap-2 w-full md:w-1/4">
+          <label className="text-xs text-gray-500">Class *</label>
           <select
             {...register('classId')}
             className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full focus:ring-primary-500 focus:outline-none"
           >
             <option value="">Select Class</option>
-            {relatedData?.classes?.map((cls: any) => (
-              <option key={cls.id} value={cls.id}>
-                {cls.name}
-              </option>
+            {classes.map((cls: any) => (
+              <option key={cls.id} value={cls.id}>{cls.name}</option>
             ))}
           </select>
+          {errors.classId && <p className="text-xs text-red-400">{errors.classId.message}</p>}
         </div>
         <div className="flex flex-col gap-2 w-full md:w-1/4">
           <label className="text-xs text-gray-500">Section</label>
@@ -135,9 +149,7 @@ export default function StudentForm({ type, data, relatedData, onClose, onSucces
           >
             <option value="">Select Section</option>
             {relatedData?.sections?.map((sec: any) => (
-              <option key={sec.id} value={sec.id}>
-                {sec.name}
-              </option>
+              <option key={sec.id} value={sec.id}>{sec.name}</option>
             ))}
           </select>
         </div>

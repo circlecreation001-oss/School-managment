@@ -15,7 +15,6 @@ const teacherSchema = z.object({
   gender: z.enum(['male', 'female', 'other']).optional(),
   qualification: z.string().optional(),
   designation: z.string().optional(),
-  employeeCode: z.string().min(1, 'Employee code is required'),
 });
 
 type TeacherFormData = z.infer<typeof teacherSchema>;
@@ -47,7 +46,6 @@ export default function TeacherForm({ type, data, onClose, onSuccess }: TeacherF
           gender: data.gender || undefined,
           qualification: data.qualification || '',
           designation: data.designation || '',
-          employeeCode: data.employeeCode || '',
         }
       : undefined,
   });
@@ -67,7 +65,7 @@ export default function TeacherForm({ type, data, onClose, onSuccess }: TeacherF
       if (res.success) {
         onSuccess();
       } else {
-        setError(res.error?.message || 'Operation failed');
+        setError(res.error?.message || res.error?.details?.map((d: any) => d.message).join(', ') || 'Operation failed');
       }
     } catch {
       setError('An unexpected error occurred');
@@ -85,7 +83,6 @@ export default function TeacherForm({ type, data, onClose, onSuccess }: TeacherF
       {error && <p className="text-sm text-red-500 bg-red-50 p-2 rounded">{error}</p>}
 
       <div className="flex justify-between flex-wrap gap-4">
-        <InputField label="Employee Code" register={register} name="employeeCode" error={errors.employeeCode} />
         <InputField label="First Name" register={register} name="firstName" error={errors.firstName} />
         <InputField label="Last Name" register={register} name="lastName" error={errors.lastName} />
         <InputField label="Email" type="email" register={register} name="email" error={errors.email} />

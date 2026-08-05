@@ -15,6 +15,7 @@ export default function AcademicsPage() {
   const [form, setForm] = useState<any>({});
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState('');
+  const [sessions, setSessions] = useState<any[]>([]);
 
   const endpoints: Record<Tab, string> = { sessions: '/academics/sessions', classes: '/academics/classes', subjects: '/academics/subjects', departments: '/academics/departments' };
 
@@ -25,12 +26,26 @@ export default function AcademicsPage() {
     setLoading(false);
   }, [tab]);
 
+  useEffect(() => {
+    const loadSessions = async () => {
+      const res = await apiClient.get<any>('/academics/sessions');
+      if (res.success) setSessions(Array.isArray(res.data) ? res.data : []);
+    };
+    loadSessions();
+  }, []);
+
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault(); setSaving(true);
-    const res = await apiClient.post(endpoints[tab], form);
+    const payload = { ...form };
+    if (tab === 'classes' && !payload.academicSessionId && sessions.length > 0) {
+      const current = sessions.find((s: any) => s.isCurrent) || sessions[0];
+      payload.academicSessionId = current?.id;
+    }
+    const res = await apiClient.post(endpoints[tab], payload);
     if (res.success) { setShowCreate(false); setForm({}); setToast(`Created successfully`); fetchData(); }
+    else { setToast(res.error?.message || 'Failed to create'); }
     setSaving(false);
   };
 
@@ -86,6 +101,14 @@ export default function AcademicsPage() {
             <div><label className="block text-sm font-medium mb-1">Start Date</label><input type="date" value={form.startDate || ''} onChange={e => setForm({...form, startDate: e.target.value})} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-800 px-3 py-2 text-sm" /></div>
             <div><label className="block text-sm font-medium mb-1">End Date</label><input type="date" value={form.endDate || ''} onChange={e => setForm({...form, endDate: e.target.value})} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-800 px-3 py-2 text-sm" /></div>
           </>}
+          {tab === 'classes' && (
+            <div><label className="block text-sm font-medium mb-1">Academic Session</label>
+              <select value={form.academicSessionId || ''} onChange={e => setForm({...form, academicSessionId: e.target.value})} className="w-full rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-800 px-3 py-2 text-sm">
+                <option value="">Select Session</option>
+                {sessions.map((s: any) => <option key={s.id} value={s.id}>{s.name}{s.isCurrent ? ' (Current)' : ''}</option>)}
+              </select>
+            </div>
+          )}
           <div className="flex justify-end gap-3 pt-4 border-t"><button type="button" onClick={() => setShowCreate(false)} className="px-4 py-2 rounded-lg border text-sm">Cancel</button>
             <button type="submit" disabled={saving} className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium disabled:opacity-50">{saving ? 'Creating...' : 'Create'}</button></div>
         </form>

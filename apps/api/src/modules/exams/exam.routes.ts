@@ -35,6 +35,10 @@ router.get('/grades', view, examController.listGrades);
 router.post('/grades', create, validate(createGradeSchema), examController.createGrade);
 router.delete('/grades/:id', edit, examController.deleteGrade);
 
+// PDF Downloads
+router.get('/report-card/:studentId/pdf', view, examController.downloadReportCardPDF);
+router.get('/result-sheet/:examId/pdf', view, examController.downloadResultSheetPDF);
+
 // Analytics
 router.get('/:id/analytics', view, examController.getExamAnalytics);
 router.get('/performance/class', view, examController.getClassPerformance);

@@ -71,6 +71,61 @@ export class ExamController {
   async getReportCard(req: Request, res: Response, next: NextFunction) {
     try { sendSuccess(res, await examService.getReportCard(req.user!.tenantId, req.params.studentId!, req.query.sessionId as string)); } catch (e) { next(e); }
   }
+
+  // PDF Downloads
+  async downloadReportCardPDF(req: Request, res: Response, next: NextFunction) {
+    try {
+      const data = await examService.getReportCard(req.user!.tenantId, req.params.studentId!, req.query.sessionId as string);
+      const tenant = await prisma.tenant.findUnique({ where: { id: req.user!.tenantId }, select: { name: true } });
+
+      const doc = generateReportCardPDF({
+        studentName: `${data.student.firstName} ${data.student.lastName}`,
+        admissionNumber: data.student.admissionNumber,
+        className: data.student.class?.name,
+        rollNumber: data.student.rollNumber,
+        results: data.results.map((r: any) => ({
+          subject: r.exam.subject?.name || r.exam.name,
+          marks: Number(r.marksObtained),
+          total: Number(r.exam.totalMarks),
+          grade: r.grade?.name || '-',
+        })),
+        instituteName: tenant?.name,
+      });
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="report-card-${data.student.admissionNumber}.pdf"`);
+      doc.pipe(res);
+      doc.end();
+    } catch (e) { next(e); }
+  }
+
+  async downloadResultSheetPDF(req: Request, res: Response, next: NextFunction) {
+    try {
+      const exam = await examService.getExam(req.user!.tenantId, req.params.examId!);
+      const results = await examService.getResults(req.user!.tenantId, { examId: req.params.examId! });
+      const tenant = await prisma.tenant.findUnique({ where: { id: req.user!.tenantId }, select: { name: true } });
+
+      const doc = generateExamResultSheetPDF({
+        examName: exam.name,
+        className: exam.class?.name,
+        subjectName: exam.subject?.name,
+        results: results.map((r: any) => ({
+          studentName: `${r.student.firstName} ${r.student.lastName}`,
+          rollNumber: r.student.rollNumber,
+          marks: Number(r.marksObtained),
+          total: Number(r.exam.totalMarks),
+          grade: r.grade?.name || '-',
+          percentage: r.percentage,
+        })),
+        instituteName: tenant?.name,
+      });
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="result-sheet-${exam.name}.pdf"`);
+      doc.pipe(res);
+      doc.end();
+    } catch (e) { next(e); }
+  }
 }
 
 export const examController = new ExamController();

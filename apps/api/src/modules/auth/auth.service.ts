@@ -571,9 +571,7 @@ export class AuthService {
         { name: 'Inventory Manager', code: 'inventory_manager', isSystemRole: true },
       ];
 
-      for (const r of defaultRoles) {
-        await tx.role.create({ data: { tenantId: tenant.id, ...r } });
-      }
+      await tx.role.createMany({ data: defaultRoles.map(r => ({ tenantId: tenant.id, ...r })) });
 
       // Assign ALL permissions to tenant_admin role
       const tenantAdminRole = await tx.role.findUnique({ where: { tenantId_code: { tenantId: tenant.id, code: 'tenant_admin' } } });

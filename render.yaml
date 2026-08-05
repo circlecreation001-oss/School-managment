@@ -38,3 +38,25 @@ services:
         value: "100"
       - key: ENCRYPTION_KEY
         generateValue: true
+      - key: DIRECT_URL
+        sync: false
+      - key: SUPER_ADMIN_EMAIL
+        sync: false
+      - key: SUPER_ADMIN_PASSWORD
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM_EMAIL
+        value: noreply@schoolnex.in
+      - key: SMTP_FROM_NAME
+        value: SchoolNex
+      - key: APP_URL
+        sync: false
+      - key: API_URL
+        sync: false

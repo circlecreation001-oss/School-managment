@@ -219,8 +219,21 @@ export class AuthService {
       JSON.stringify({ userId: user.id, tenantId: tenant.id }),
     );
 
-    // TODO: Send verification email via notification queue
-    logger.info({ userId: user.id, email: input.email }, 'User registered, verification email pending');
+    // Queue verification email
+    try {
+      const { emailQueue } = await import('../../config/index.js');
+      const verificationLink = `${env.appUrl}/verify-email?token=${verificationToken}`;
+      await emailQueue.add('verify-email', {
+        to: input.email,
+        subject: 'Verify your email address',
+        body: `Hi ${input.firstName},\n\nPlease verify your email address by clicking the link below:\n\n${verificationLink}\n\nThis link will expire in ${AUTH_CONSTANTS.EMAIL_VERIFICATION_EXPIRY_HOURS} hours.\n\nThank you.`,
+        html: `<p>Hi ${input.firstName},</p><p>Please verify your email address by clicking the link below:</p><p><a href="${verificationLink}">Verify Email</a></p><p>This link will expire in ${AUTH_CONSTANTS.EMAIL_VERIFICATION_EXPIRY_HOURS} hours.</p>`,
+        tenantId: tenant.id,
+        channel: 'email',
+      });
+    } catch (emailErr) {
+      logger.warn({ err: emailErr }, 'Verification email queueing failed (non-fatal)');
+    }
 
     return {
       userId: user.id,
@@ -332,8 +345,21 @@ export class AuthService {
       JSON.stringify({ userId: user.id, tenantId: tenant.id }),
     );
 
-    // TODO: Send reset email via notification queue
-    logger.info({ userId: user.id, email: input.email }, 'Password reset token generated');
+    // Queue password reset email
+    try {
+      const { emailQueue } = await import('../../config/index.js');
+      const resetLink = `${env.appUrl}/reset-password?token=${resetToken}`;
+      await emailQueue.add('reset-password', {
+        to: input.email,
+        subject: 'Reset your password',
+        body: `Hi,\n\nYou requested a password reset. Click the link below to set a new password:\n\n${resetLink}\n\nThis link will expire in ${AUTH_CONSTANTS.RESET_TOKEN_EXPIRY_MINUTES} minutes.\n\nIf you did not request this, please ignore this email.\n\nThank you.`,
+        html: `<p>Hi,</p><p>You requested a password reset. Click the link below to set a new password:</p><p><a href="${resetLink}">Reset Password</a></p><p>This link will expire in ${AUTH_CONSTANTS.RESET_TOKEN_EXPIRY_MINUTES} minutes.</p><p>If you did not request this, please ignore this email.</p>`,
+        tenantId: tenant.id,
+        channel: 'email',
+      });
+    } catch (emailErr) {
+      logger.warn({ err: emailErr }, 'Reset email queueing failed (non-fatal)');
+    }
 
     // Audit log
     await authRepository.createAuditLog({

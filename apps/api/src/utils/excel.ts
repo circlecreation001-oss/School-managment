@@ -39,7 +39,7 @@ export async function generateStudentExcel(students: any[]): Promise<Buffer> {
   return Buffer.from(await wb.xlsx.writeBuffer());
 }
 
-export async function generateAttendanceExcel(records: any[], dateRange: string): Promise<Buffer> {
+export async function generateAttendanceExcel(records: any[], _dateRange: string): Promise<Buffer> {
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet('Attendance');
 

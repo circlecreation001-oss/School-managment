@@ -2,7 +2,6 @@ import { Worker } from 'bullmq';
 import { logger, createWorker } from '../config/index.js';
 import { processEmailJob } from './email.worker.js';
 import { processSmsJob } from './sms.worker.js';
-import { processWhatsappJob } from './whatsapp.worker.js';
 import { processNotificationJob } from './notification.worker.js';
 import { processReportJob } from './report.worker.js';
 

@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { feeService } from './fee.service.js';
 import { sendSuccess, sendCreated, sendList } from '../../utils/response.js';
+import { generateFeeReceiptPDF } from '../../utils/pdf.js';
+import { prisma } from '@erp/database';
 
 export class FeeController {
   // Categories
@@ -75,6 +77,47 @@ export class FeeController {
   }
   async getStudentLedger(req: Request, res: Response, next: NextFunction) {
     try { sendSuccess(res, await feeService.getStudentLedger(req.user!.tenantId, req.params.studentId!)); } catch (e) { next(e); }
+  }
+
+  // Fee Receipt PDF
+  async generateReceiptPDF(req: Request, res: Response, next: NextFunction) {
+    try {
+      const invoice = await feeService.getInvoice(req.user!.tenantId, req.params.id!);
+      if (!invoice) {
+        throw new Error('Invoice not found');
+      }
+
+      // Get payment for this invoice
+      const payment = await prisma.payment.findFirst({
+        where: { invoiceId: invoice.id, status: 'completed' },
+        orderBy: { paidAt: 'desc' },
+      });
+
+      if (!payment) {
+        throw new Error('No completed payment found for this invoice');
+      }
+
+      const student = invoice.student;
+      if (!student) {
+        throw new Error('Student not found for this invoice');
+      }
+
+      const doc = generateFeeReceiptPDF({
+        receiptNumber: payment.receiptNumber || `RCT-${payment.id.slice(-6)}`,
+        studentName: `${student.firstName} ${student.lastName}`,
+        className: student.class?.name || '',
+        amount: Number(payment.amount),
+        paymentMethod: payment.paymentMethod,
+        paidAt: payment.paidAt ? new Date(payment.paidAt).toLocaleDateString() : new Date().toLocaleDateString(),
+        instituteName: req.user!.tenantId,
+      });
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="receipt-${payment.receiptNumber || payment.id}.pdf"`);
+      doc.pipe(res);
+    } catch (e) {
+      next(e);
+    }
   }
 }
 

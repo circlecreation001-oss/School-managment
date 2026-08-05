@@ -2,7 +2,7 @@
 import type { Prisma } from '@erp/database';
 
 export class FeeRepository {
-  // â”€â”€â”€ Fee Categories â”€â”€â”€
+  // ─── Fee Categories ───
   async listCategories(tenantId: string) {
     return prisma.feeCategory.findMany({ where: { tenantId, deletedAt: null }, orderBy: { name: 'asc' } });
   }
@@ -10,7 +10,7 @@ export class FeeRepository {
   async updateCategory(id: string, data: any /* Prisma.FeeCategoryUpdateInput */) { return prisma.feeCategory.update({ where: { id }, data }); }
   async deleteCategory(id: string) { return prisma.feeCategory.update({ where: { id }, data: { deletedAt: new Date(), status: 'archived' } }); }
 
-  // â”€â”€â”€ Fee Structures â”€â”€â”€
+  // ─── Fee Structures ───
   async listStructures(tenantId: string, branchId: string, sessionId?: string) {
     const where: Prisma.FeeStructureWhereInput = { tenantId, branchId, deletedAt: null };
     if (sessionId) where.academicSessionId = sessionId;
@@ -24,7 +24,7 @@ export class FeeRepository {
   async updateStructure(id: string, data: any /* Prisma.FeeStructureUpdateInput */) { return prisma.feeStructure.update({ where: { id }, data }); }
   async deleteStructure(id: string) { return prisma.feeStructure.update({ where: { id }, data: { deletedAt: new Date(), status: 'archived' } }); }
 
-  // â”€â”€â”€ Invoices â”€â”€â”€
+  // ─── Invoices ───
   async listInvoices(tenantId: string, params: {
     page?: number; limit?: number; status?: string; classId?: string;
     studentId?: string; startDate?: Date; endDate?: Date;
@@ -75,7 +75,7 @@ export class FeeRepository {
     return `INV${year}${String(count + 1).padStart(6, '0')}`;
   }
 
-  // â”€â”€â”€ Payments â”€â”€â”€
+  // ─── Payments ───
   async createPayment(data: any /* Prisma.PaymentUncheckedCreateInput */) { return prisma.payment.create({ data }); }
   async getPayment(id: string) { return prisma.payment.findUnique({ where: { id }, include: { invoice: true } }); }
   async getNextReceiptNumber(tenantId: string): Promise<string> {
@@ -85,19 +85,20 @@ export class FeeRepository {
   }
   async updatePaymentStatus(id: string, status: string) { return prisma.payment.update({ where: { id }, data: { status: status as any } }); }
 
-  // â”€â”€â”€ Discounts â”€â”€â”€
+  // ─── Discounts ───
   async applyDiscount(data: any /* Prisma.DiscountUncheckedCreateInput */) { return prisma.discount.create({ data }); }
   async getInvoiceDiscounts(invoiceId: string) { return prisma.discount.findMany({ where: { invoiceId } }); }
 
-  // â”€â”€â”€ Scholarships â”€â”€â”€
+  // ─── Scholarships ───
   async applyScholarship(data: any /* Prisma.ScholarshipUncheckedCreateInput */) { return prisma.scholarship.create({ data }); }
   async getInvoiceScholarships(invoiceId: string) { return prisma.scholarship.findMany({ where: { invoiceId } }); }
 
-  // â”€â”€â”€ Reports â”€â”€â”€
+  // ─── Reports ───
   async getDueReport(tenantId: string, classId?: string) {
     const where: Prisma.InvoiceWhereInput = {
       tenantId, deletedAt: null, status: { in: ['issued', 'partially_paid', 'overdue'] },
     };
+    if (classId) where.classId = classId;
     return prisma.invoice.findMany({
       where,
       include: { student: { select: { firstName: true, lastName: true, admissionNumber: true, class: { select: { name: true } } } } },
@@ -136,12 +137,18 @@ export class FeeRepository {
     return Object.entries(monthly).map(([month, amount]) => ({ month, amount }));
   }
 
-  // â”€â”€â”€ Student Ledger â”€â”€â”€
+  // ─── Student Ledger ───
   async getStudentLedger(tenantId: string, studentId: string) {
     return prisma.invoice.findMany({
       where: { tenantId, studentId, deletedAt: null },
       include: { payments: true, discounts: true, scholarships: true, feeStructure: { select: { name: true } } },
       orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getPaymentByTransactionRef(tenantId: string, transactionRef: string) {
+    return prisma.payment.findFirst({
+      where: { tenantId, transactionRef },
     });
   }
 }

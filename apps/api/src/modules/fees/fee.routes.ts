@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { feeController } from './fee.controller.js';
+import { razorpayController } from './razorpay.controller.js';
 import { authenticate } from '../../middleware/auth.middleware.js';
 import { requirePermission } from '../../middleware/rbac.middleware.js';
 import { validate, validateRequest } from '../../middleware/validate.middleware.js';
@@ -10,6 +11,10 @@ import {
 } from './fee.schema.js';
 
 const router = Router();
+
+// Public webhook (no auth)
+router.post('/webhooks/razorpay', razorpayController.handleWebhook);
+
 router.use(authenticate);
 
 const view = requirePermission(['fees:view']);
@@ -37,6 +42,10 @@ router.post('/invoices/bulk', create, validate(generateBulkInvoicesSchema), feeC
 // Payments
 router.post('/payments', create, validate(recordPaymentSchema), feeController.recordPayment);
 
+// Razorpay Online Payments
+router.post('/payments/razorpay/create-order', create, razorpayController.createOrder);
+router.post('/payments/razorpay/verify', create, razorpayController.verifyPayment);
+
 // Discounts & Scholarships
 router.post('/discounts', approve, validate(applyDiscountSchema), feeController.applyDiscount);
 router.post('/scholarships', approve, validate(applyScholarshipSchema), feeController.applyScholarship);
@@ -49,5 +58,8 @@ router.get('/reports/due', view, feeController.getDueReport);
 router.get('/reports/collection', view, feeController.getCollectionSummary);
 router.get('/reports/revenue', view, feeController.getRevenueByMonth);
 router.get('/ledger/:studentId', view, feeController.getStudentLedger);
+
+// Fee Receipt PDF
+router.get('/invoices/:id/receipt', view, feeController.generateReceiptPDF);
 
 export { router as feeRouter };

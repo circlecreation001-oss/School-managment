@@ -32,7 +32,7 @@ export async function processReportJob(job: Job<ReportJobData>): Promise<void> {
   }
 }
 
-async function generateExcelReport(tenantId: string, reportType: string, filters?: Record<string, unknown>) {
+async function generateExcelReport(tenantId: string, reportType: string, _filters?: Record<string, unknown>) {
   const { prisma } = await import('@erp/database');
   const { generateStudentExcel, generateAttendanceExcel, generateFeeExcel, generateReportExcel } = await import('../utils/excel.js');
 
@@ -81,18 +81,17 @@ async function generateExcelReport(tenantId: string, reportType: string, filters
   // await uploadFile({ key, body: buffer, contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 }
 
-async function generatePdfReport(tenantId: string, reportType: string, filters?: Record<string, unknown>) {
-  const { prisma } = await import('@erp/database');
+async function generatePdfReport(tenantId: string, reportType: string, _filters?: Record<string, unknown>) {
   const { generateFeeReceiptPDF, generateReportCardPDF, generateInvoicePDF } = await import('../utils/pdf.js');
 
   switch (reportType) {
     case 'fee-receipt': {
       const doc = generateFeeReceiptPDF({
-        receiptNumber: (filters?.receiptNumber as string) || 'RCT-000',
-        studentName: (filters?.studentName as string) || 'Student',
-        className: (filters?.className as string) || '',
-        amount: (filters?.amount as number) || 0,
-        paymentMethod: (filters?.paymentMethod as string) || 'cash',
+        receiptNumber: (_filters?.receiptNumber as string) || 'RCT-000',
+        studentName: (_filters?.studentName as string) || 'Student',
+        className: (_filters?.className as string) || '',
+        amount: (_filters?.amount as number) || 0,
+        paymentMethod: (_filters?.paymentMethod as string) || 'cash',
         paidAt: new Date().toLocaleDateString(),
       });
       doc.end();
@@ -100,21 +99,21 @@ async function generatePdfReport(tenantId: string, reportType: string, filters?:
     }
     case 'report-card': {
       const doc = generateReportCardPDF({
-        studentName: (filters?.studentName as string) || 'Student',
-        className: (filters?.className as string) || '',
-        results: (filters?.results as any[]) || [],
+        studentName: (_filters?.studentName as string) || 'Student',
+        className: (_filters?.className as string) || '',
+        results: (_filters?.results as any[]) || [],
       });
       doc.end();
       break;
     }
     case 'invoice': {
       const doc = generateInvoicePDF({
-        invoiceNumber: (filters?.invoiceNumber as string) || 'INV-000',
-        studentName: (filters?.studentName as string) || 'Student',
-        className: (filters?.className as string) || '',
-        items: (filters?.items as any[]) || [],
-        totalAmount: (filters?.totalAmount as number) || 0,
-        paidAmount: (filters?.paidAmount as number) || 0,
+        invoiceNumber: (_filters?.invoiceNumber as string) || 'INV-000',
+        studentName: (_filters?.studentName as string) || 'Student',
+        className: (_filters?.className as string) || '',
+        items: (_filters?.items as any[]) || [],
+        totalAmount: (_filters?.totalAmount as number) || 0,
+        paidAmount: (_filters?.paidAmount as number) || 0,
       });
       doc.end();
       break;

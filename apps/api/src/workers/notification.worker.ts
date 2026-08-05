@@ -56,8 +56,8 @@ export async function processNotificationJob(job: Job<NotificationJobData>): Pro
 async function processPushNotification(
   recipientId: string,
   subject?: string,
-  body?: string,
-  data?: Record<string, unknown>,
+  _body?: string,
+  _data?: Record<string, unknown>,
 ): Promise<void> {
   // FCM integration placeholder — requires FIREBASE_SERVICE_ACCOUNT env
   const fcmKey = process.env.FCM_SERVER_KEY;

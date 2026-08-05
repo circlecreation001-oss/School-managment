@@ -540,15 +540,17 @@ export class AuthService {
       const MODULES = ['users','students','teachers','parents','attendance','fees','exams','homework','study_materials','library','notifications','reports','settings','website','admissions'];
       const ACTIONS = ['view','create','edit','delete','approve','export','configure','manage'];
 
-      // Create all permissions
+      // Create all permissions in a single batch
       const allPermCodes: string[] = [];
+      const permissionsData: Array<{ tenantId: string; code: string; name: string; module: string; action: string }> = [];
       for (const mod of MODULES) {
         for (const act of ACTIONS) {
           const code = `${mod}:${act}`;
           allPermCodes.push(code);
-          await tx.permission.create({ data: { tenantId: tenant.id, code, name: `${act} ${mod}`, module: mod, action: act } });
+          permissionsData.push({ tenantId: tenant.id, code, name: `${act} ${mod}`, module: mod, action: act });
         }
       }
+      await tx.permission.createMany({ data: permissionsData });
 
       // Create roles
       const defaultRoles = [
@@ -576,10 +578,9 @@ export class AuthService {
       // Assign ALL permissions to tenant_admin role
       const tenantAdminRole = await tx.role.findUnique({ where: { tenantId_code: { tenantId: tenant.id, code: 'tenant_admin' } } });
       if (tenantAdminRole) {
-        const allPerms = await tx.permission.findMany({ where: { tenantId: tenant.id } });
-        for (const perm of allPerms) {
-          await tx.rolePermission.create({ data: { roleId: tenantAdminRole.id, permissionId: perm.id } });
-        }
+        const allPerms = await tx.permission.findMany({ where: { tenantId: tenant.id }, select: { id: true } });
+        const rolePermData = allPerms.map((perm) => ({ roleId: tenantAdminRole.id, permissionId: perm.id }));
+        await tx.rolePermission.createMany({ data: rolePermData });
       }
 
       // 3. Create institution + branch

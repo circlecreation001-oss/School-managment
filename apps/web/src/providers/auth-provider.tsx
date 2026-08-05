@@ -68,11 +68,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (res.success && res.data) {
         localStorage.setItem('accessToken', res.data.accessToken);
         localStorage.setItem('refreshToken', res.data.refreshToken);
-        // Fetch full user with permissions
         const meRes = await apiClient.get<AuthUser>('/auth/me');
         if (meRes.success && meRes.data) {
           setUser(meRes.data);
-          localStorage.setItem('user', JSON.stringify(meRes.data));
         }
         return { success: true };
       }
@@ -90,7 +88,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     try {
       const refreshToken = localStorage.getItem('refreshToken');
-      await apiClient.post('/auth/logout', { refreshToken });
+      if (refreshToken) {
+        await apiClient.post('/auth/logout', { refreshToken });
+      }
     } catch {
       // Ignore logout errors
     } finally {

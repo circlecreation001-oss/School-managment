@@ -9,7 +9,7 @@ export default function AccountantDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    apiClient.get('/reports/dashboard').then(res => { if (res.success) setStats(res.data?.kpis || res.data); setLoading(false); }).catch(() => setLoading(false));
+    apiClient.get<any>('/reports/dashboard').then(res => { if (res.success) setStats(res.data?.kpis || res.data); setLoading(false); }).catch(() => setLoading(false));
   }, []);
 
   return (

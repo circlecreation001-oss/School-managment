@@ -1,6 +1,15 @@
 import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
 import { AuthProvider } from '@/providers/auth-provider';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import './globals.css';
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
 export const metadata: Metadata = {
   title: { default: 'SchoolNex — Complete School Management ERP', template: '%s | SchoolNex' },
@@ -29,9 +38,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="min-h-screen bg-slate-50 font-sans antialiased dark:bg-slate-950">
-        <AuthProvider>{children}</AuthProvider>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
+      <body className="min-h-screen font-sans antialiased">
+        <AuthProvider>
+          {children}
+          <ToastContainer position="bottom-right" autoClose={3000} />
+        </AuthProvider>
       </body>
     </html>
   );

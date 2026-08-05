@@ -2,6 +2,7 @@
 import { logger } from '../../config/index.js';
 import { prisma } from '@erp/database';
 import { attendanceRepository } from './attendance.repository.js';
+import { NotificationTriggers } from '../notifications/index.js';
 import type {
   MarkBulkAttendanceInput, MarkSingleAttendanceInput, MarkTeacherAttendanceInput,
   MarkStaffAttendanceInput, QrCheckInInput, DailyAttendanceQuery, MonthlyReportQuery, AnalyticsQuery,
@@ -17,6 +18,8 @@ export class AttendanceService {
     if (isHoliday) throw new AppError(400, 'BAD_REQUEST', 'Cannot mark attendance on a holiday');
 
     let marked = 0;
+    const absentStudents: Array<{ studentId: string; studentName: string; parentPhone?: string; parentEmail?: string }> = [];
+
     for (const record of input.records) {
       await attendanceRepository.markStudentAttendance({
         tenantId, branchId: branch, classId: input.classId,
@@ -24,10 +27,45 @@ export class AttendanceService {
         status: record.status as any, remarks: record.remarks, markedBy: actorId,
       });
       marked++;
+
+      // Collect absent students for notification
+      if (record.status === 'absent') {
+        const student = await prisma.student.findUnique({
+          where: { id: record.studentId },
+          select: { firstName: true, lastName: true, parentLinks: { include: { parent: true } } },
+        });
+        if (student) {
+          const primaryParent = student.parentLinks.find((pl) => pl.isPrimary)?.parent;
+          absentStudents.push({
+            studentId: record.studentId,
+            studentName: `${student.firstName} ${student.lastName}`,
+            parentPhone: primaryParent?.phone,
+            parentEmail: primaryParent?.email,
+          });
+        }
+      }
     }
 
     await this.audit(tenantId, actorId, 'attendance', null, 'mark_bulk', { date: input.date, classId: input.classId, count: marked });
     logger.info({ tenantId, date: input.date, classId: input.classId, count: marked, actorId }, 'Bulk attendance marked');
+
+    // Trigger attendance alerts for absent students
+    if (absentStudents.length > 0) {
+      try {
+        for (const abs of absentStudents) {
+          await NotificationTriggers.attendanceAlert(tenantId, {
+            studentName: abs.studentName,
+            date: date.toISOString().split('T')[0],
+            status: 'absent',
+            parentPhone: abs.parentPhone,
+            parentEmail: abs.parentEmail,
+          });
+        }
+      } catch (notifyErr) {
+        logger.warn({ err: notifyErr }, 'Failed to send attendance alerts');
+      }
+    }
+
     return { marked, date: input.date, classId: input.classId };
   }
 

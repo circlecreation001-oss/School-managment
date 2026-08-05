@@ -3,6 +3,7 @@ import { logger } from '../../config/index.js';
 import { prisma } from '@erp/database';
 import { examRepository } from './exam.repository.js';
 import { buildPaginationMeta } from '@erp/utils';
+import { NotificationTriggers } from '../notifications/index.js';
 import type { CreateExamInput, CreateExamScheduleInput, EnterMarksInput, CreateGradeInput, ExamListQuery } from './exam.schema.js';
 
 export class ExamService {
@@ -102,6 +103,29 @@ export class ExamService {
     await examRepository.publishResults(examId);
     await examRepository.updateExam(examId, { status: 'published' });
     await this.audit(tenantId, actorId, 'result', examId, 'publish');
+
+    // Trigger result alert notification
+    try {
+      const results = await examRepository.getResults(tenantId, { examId });
+      for (const result of results) {
+        const student = await prisma.student.findUnique({
+          where: { id: result.studentId },
+          include: { parentLinks: { include: { parent: true } } },
+        });
+        if (student) {
+          const primaryParent = student.parentLinks.find((pl) => pl.isPrimary)?.parent;
+          await NotificationTriggers.resultAlert(tenantId, {
+            examName: exam.name,
+            className: exam.class?.name || '',
+            studentEmail: student.email,
+            parentPhone: primaryParent?.phone,
+          });
+        }
+      }
+    } catch (notifyErr) {
+      logger.warn({ err: notifyErr }, 'Failed to send result alert notification');
+    }
+
     return { message: 'Results published' };
   }
 

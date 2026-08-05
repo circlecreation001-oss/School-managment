@@ -3,6 +3,13 @@ import type { Config } from 'tailwindcss';
 const config: Config = {
   darkMode: 'class',
   content: ['./src/**/*.{ts,tsx}'],
+  safelist: [
+    'bg-primary-50', 'bg-primary-100', 'bg-primary-500', 'bg-primary-600',
+    'bg-emerald-50', 'bg-emerald-500', 'bg-amber-50', 'bg-amber-500',
+    'bg-red-50', 'bg-red-500', 'bg-cyan-50', 'bg-cyan-500',
+    'text-primary-600', 'text-primary-700', 'text-emerald-600', 'text-amber-600', 'text-red-600',
+    'border-primary-200', 'border-emerald-200', 'border-amber-200', 'border-red-200',
+  ],
   theme: {
     extend: {
       colors: {
@@ -18,40 +25,57 @@ const config: Config = {
           800: '#1e3a8a',
           900: '#172554',
         },
-        accent: {
-          50: '#f5f3ff',
-          500: '#7c3aed',
-          600: '#6d28d9',
+        secondary: {
+          50: '#eef2ff',
+          100: '#e0e7ff',
+          500: '#4f46e5',
+          600: '#4338ca',
+          700: '#3730a3',
         },
-        success: {
-          50: '#ecfdf3',
-          500: '#16a34a',
-          600: '#15803d',
-        },
-        warning: {
-          50: '#fffbeb',
-          500: '#f59e0b',
-          600: '#d97706',
-        },
-        danger: {
-          50: '#fef2f2',
-          500: '#ef4444',
-          600: '#dc2626',
+        surface: {
+          DEFAULT: '#FFFFFF',
+          muted: '#F8FAFC',
+          subtle: '#F1F5F9',
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        sans: ['var(--font-inter)', 'system-ui', '-apple-system', 'sans-serif'],
+      },
+      fontSize: {
+        'page-title': ['1.875rem', { lineHeight: '2.25rem', fontWeight: '700' }],
+        'section-title': ['1.25rem', { lineHeight: '1.75rem', fontWeight: '600' }],
+        'card-title': ['0.875rem', { lineHeight: '1.25rem', fontWeight: '500' }],
+        'card-value': ['1.5rem', { lineHeight: '2rem', fontWeight: '700' }],
       },
       borderRadius: {
-        sm: '6px',
-        md: '8px',
-        lg: '12px',
-        xl: '16px',
+        'card': '12px',
+        'button': '8px',
+        'input': '8px',
+        'badge': '6px',
+      },
+      boxShadow: {
+        'card': '0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04)',
+        'card-hover': '0 4px 6px -1px rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.04)',
+        'dropdown': '0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04)',
+        'sidebar': '1px 0 3px 0 rgb(0 0 0 / 0.04)',
       },
       spacing: {
         '18': '4.5rem',
         '88': '22rem',
+      },
+      animation: {
+        'fade-in': 'fadeIn 0.2s ease-out',
+        'slide-in': 'slideIn 0.2s ease-out',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        slideIn: {
+          '0%': { opacity: '0', transform: 'translateY(-4px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
       },
     },
   },

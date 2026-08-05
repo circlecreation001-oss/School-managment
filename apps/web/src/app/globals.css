@@ -5,27 +5,123 @@
 @layer base {
   :root {
     --color-primary: 37 99 235;
-    --color-secondary: 100 116 139;
     --color-background: 248 250 252;
     --color-surface: 255 255 255;
     --color-border: 226 232 240;
-    --color-text-primary: 15 23 42;
-    --color-text-secondary: 71 85 105;
-  }
-
-  .dark {
-    --color-background: 2 6 23;
-    --color-surface: 15 23 42;
-    --color-border: 51 65 85;
-    --color-text-primary: 248 250 252;
-    --color-text-secondary: 203 213 225;
-  }
-
-  * {
-    @apply border-slate-200 dark:border-slate-700;
+    --color-text: 15 23 42;
+    --color-text-muted: 100 116 139;
   }
 
   body {
-    @apply text-slate-900 dark:text-slate-50;
+    @apply text-slate-900 antialiased;
+  }
+
+  /* Smooth scrolling */
+  html { scroll-behavior: smooth; }
+
+  /* Remove tap highlight on mobile */
+  * { -webkit-tap-highlight-color: transparent; }
+
+  /* Better focus states */
+  :focus-visible {
+    @apply outline-none ring-2 ring-blue-500/30 ring-offset-2;
   }
 }
+
+@layer components {
+  /* Premium Card */
+  .card {
+    @apply bg-white rounded-card border border-slate-200/60 shadow-card;
+  }
+  .card:hover {
+    @apply shadow-card-hover;
+  }
+
+  /* Premium Button */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-button text-sm font-medium
+    bg-primary-500 text-white hover:bg-primary-600 active:bg-primary-700
+    transition-all duration-150 shadow-sm hover:shadow-md;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-button text-sm font-medium
+    bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:border-slate-300
+    transition-all duration-150;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-3 py-2 rounded-button text-sm font-medium
+    text-slate-600 hover:bg-slate-100 hover:text-slate-900
+    transition-all duration-150;
+  }
+
+  /* Premium Input */
+  .input {
+    @apply w-full px-3.5 py-2.5 rounded-input text-sm border border-slate-200
+    placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500
+    transition-all duration-150;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-badge text-xs font-medium;
+  }
+  .badge-success {
+    @apply badge bg-emerald-50 text-emerald-700 border border-emerald-200/60;
+  }
+  .badge-warning {
+    @apply badge bg-amber-50 text-amber-700 border border-amber-200/60;
+  }
+  .badge-danger {
+    @apply badge bg-red-50 text-red-700 border border-red-200/60;
+  }
+  .badge-info {
+    @apply badge bg-primary-50 text-primary-700 border border-primary-200/60;
+  }
+  .badge-neutral {
+    @apply badge bg-slate-100 text-slate-600 border border-slate-200/60;
+  }
+}
+
+/* React Calendar */
+.react-calendar {
+  width: 100% !important;
+  border: none !important;
+  font-family: 'Inter', sans-serif !important;
+  background: transparent !important;
+}
+.react-calendar__navigation__label__labelText {
+  font-weight: 600;
+  font-size: 14px;
+}
+.react-calendar__tile--active {
+  background-color: #2563eb !important;
+  color: white !important;
+  border-radius: 8px;
+}
+.react-calendar__tile:hover {
+  border-radius: 8px;
+}
+.react-calendar__tile--now {
+  background-color: #eff6ff !important;
+  border-radius: 8px;
+}
+
+/* React Big Calendar */
+.rbc-btn-group:first-child { display: none !important; }
+.rbc-toolbar-label { text-align: right !important; padding: 0 20px !important; font-weight: 600; }
+.rbc-btn-group:last-child { font-size: 13px !important; }
+.rbc-btn-group:last-child button { border: none !important; background-color: #eff6ff !important; margin-left: 2px !important; border-radius: 6px !important; }
+.rbc-toolbar button.rbc-active { background-color: #dbeafe !important; box-shadow: none !important; }
+.rbc-time-view { border-color: #e2e8f0 !important; border-radius: 8px; }
+.rbc-time-header { display: none !important; }
+.rbc-time-content { border: none !important; }
+.rbc-time-gutter.rbc-time-column { font-size: 12px !important; }
+.rbc-time-gutter.rbc-time-column .rbc-timeslot-group { padding: 0 16px !important; }
+.rbc-timeslot-group { background-color: #f8fafc !important; }
+.rbc-day-slot { font-size: 13px !important; }
+.rbc-event { border: none !important; color: #1e293b !important; padding: 8px 12px !important; margin: 4px !important; width: 99% !important; border-radius: 8px !important; font-size: 12px !important; }
+.rbc-event:nth-child(1) { background-color: #eff6ff !important; }
+.rbc-event:nth-child(2) { background-color: #ecfdf5 !important; }
+.rbc-event:nth-child(3) { background-color: #eef2ff !important; }
+.rbc-event:nth-child(4) { background-color: #fef3c7 !important; }
+.rbc-event-label { color: #64748b !important; margin-bottom: 4px; }

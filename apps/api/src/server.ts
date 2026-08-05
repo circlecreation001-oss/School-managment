@@ -205,8 +205,8 @@ async function repairTenantPermissions(): Promise<void> {
       // This tenant needs repair
       logger.info({ tenantId: tenant.id, slug: tenant.slug }, '[BOOT] Repairing tenant permissions');
 
-      // Create all permissions if missing
-      let permCount = await prisma.permission.count({ where: { tenantId: tenant.id } });
+// Create all permissions if missing
+      const permCount = await prisma.permission.count({ where: { tenantId: tenant.id } });
       if (permCount === 0) {
         for (const mod of MODULES) {
           for (const act of ACTIONS) {

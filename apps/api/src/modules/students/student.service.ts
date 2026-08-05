@@ -3,6 +3,7 @@ import { logger } from '../../config/index.js';
 import { prisma } from '@erp/database';
 import { studentRepository } from './student.repository.js';
 import { buildPaginationMeta } from '@erp/utils';
+import { NotificationTriggers } from '../notifications/index.js';
 import type {
   CreateAdmissionInput, UpdateStudentInput, UpsertParentInput,
   UploadDocumentInput, PromoteStudentsInput, TransferStudentInput,
@@ -23,6 +24,35 @@ export class StudentService {
     if (!student || student.tenantId !== tenantId || student.deletedAt) {
       throw new AppError(404, 'NOT_FOUND', 'Student not found');
     }
+    return student;
+  }
+
+  // ─── GET CURRENT STUDENT (for student portal) ───
+  async getMe(tenantId: string, userId: string) {
+    const student = await prisma.student.findUnique({
+      where: { userId },
+      select: {
+        id: true,
+        tenantId: true,
+        admissionNumber: true,
+        rollNumber: true,
+        firstName: true,
+        lastName: true,
+        classId: true,
+        sectionId: true,
+        batchId: true,
+        branchId: true,
+        academicSessionId: true,
+        status: true,
+        class: { select: { id: true, name: true, code: true } },
+        section: { select: { id: true, name: true } },
+      },
+    });
+
+    if (!student || student.tenantId !== tenantId) {
+      throw new AppError(404, 'NOT_FOUND', 'No student profile linked to this account');
+    }
+
     return student;
   }
 
@@ -82,6 +112,22 @@ export class StudentService {
 
     await this.audit(tenantId, actorId, 'student', student.id, 'admit');
     logger.info({ tenantId, studentId: student.id, admissionNumber, actorId }, 'Student admitted');
+
+    // Trigger admission confirmation notification
+    try {
+      const guardian = input.guardian;
+      if (guardian) {
+        await NotificationTriggers.admissionConfirmation(tenantId, {
+          applicantName: `${input.firstName} ${input.lastName}`,
+          email: guardian.email,
+          phone: guardian.phone,
+          classApplied: input.classId,
+        });
+      }
+    } catch (notifyErr) {
+      logger.warn({ err: notifyErr }, 'Failed to send admission confirmation notification');
+    }
+
     return student;
   }
 

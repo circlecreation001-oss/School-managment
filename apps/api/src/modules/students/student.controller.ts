@@ -15,6 +15,10 @@ export class StudentController {
     try { sendSuccess(res, await studentService.getById(req.user!.tenantId, req.params.id!)); } catch (e) { next(e); }
   }
 
+  async getMe(req: Request, res: Response, next: NextFunction) {
+    try { sendSuccess(res, await studentService.getMe(req.user!.tenantId, req.user!.id)); } catch (e) { next(e); }
+  }
+
   async admit(req: Request, res: Response, next: NextFunction) {
     try {
       let branchId = req.query.branchId as string || req.user!.branchId || '';

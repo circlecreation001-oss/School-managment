@@ -22,6 +22,7 @@ const exp = requirePermission(['students:export']);
 router.get('/', view, validateRequest({ query: studentListQuerySchema }), studentController.list);
 router.get('/stats', view, studentController.getStats);
 router.get('/export', exp, studentController.exportStudents);
+router.get('/me', view, studentController.getMe);
 router.get('/:id', view, studentController.getById);
 router.post('/', create, validate(createAdmissionSchema), studentController.admit);
 router.patch('/:id', edit, validate(updateStudentSchema), studentController.update);

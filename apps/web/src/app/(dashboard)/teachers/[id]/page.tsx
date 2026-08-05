@@ -2,153 +2,157 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { PageHeader } from '@/components/layout';
-import { PageLoading } from '@/components/common';
 import { apiClient } from '@/lib/api-client';
+import { BigCalendar } from '@/components/calendar/big-calendar';
+import { Announcements } from '@/components/ui/announcements';
+import { CalendarDays, Phone, Mail, Briefcase } from 'lucide-react';
 
 interface TeacherDetail {
-  id: string; employeeCode: string; firstName: string; lastName: string;
-  email: string | null; phone: string | null; gender: string | null;
-  dob: string | null; designation: string | null; qualification: string | null;
-  experience: string | null; joiningDate: string | null; status: string;
-  department: { name: string } | null;
-  subjects: Array<{ subject: { id: string; name: string; code: string } }>;
-  qualifications: Array<{ id: string; degree: string; institution: string; year: number; percentage: number | null }>;
-  experiences: Array<{ id: string; organization: string; position: string; fromDate: string; toDate: string | null; isCurrent: boolean }>;
-  salary: { basic: number; hra: number; da: number; other: number; deductions: number; bankName: string | null; bankAccount: string | null } | null;
-  documents: Array<{ id: string; documentType: string; fileName: string; createdAt: string }>;
+  id: string;
+  firstName: string;
+  lastName: string;
+  employeeCode: string;
+  email?: string;
+  phone?: string;
+  dob?: string;
+  gender?: string;
+  qualification?: string;
+  designation?: string;
+  photoUrl?: string;
+  status: string;
+  department?: { name: string };
+  branch?: { name: string };
+  subjects?: { id: string; name: string }[];
 }
 
 export default function TeacherDetailPage() {
-  const { id } = useParams<{ id: string }>();
+  const params = useParams();
   const [teacher, setTeacher] = useState<TeacherDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'profile' | 'qualifications' | 'experience' | 'salary' | 'subjects' | 'documents'>('profile');
 
   useEffect(() => {
-    apiClient.get<TeacherDetail>(`/teachers/${id}`).then((res) => {
-      if (res.success) setTeacher(res.data);
-      setLoading(false);
-    });
-  }, [id]);
+    const fetchTeacher = async () => {
+      try {
+        const res = await apiClient.get<any>(`/teachers/${params.id}`);
+        if (res.success && res.data) {
+          setTeacher(res.data);
+        }
+      } catch {
+        // handle error
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (params.id) fetchTeacher();
+  }, [params.id]);
 
-  if (loading) return <PageLoading />;
-  if (!teacher) return <div className="py-10 text-center text-slate-500">Teacher not found</div>;
-
-  const TABS = [
-    { key: 'profile', label: 'Profile' },
-    { key: 'qualifications', label: 'Qualifications' },
-    { key: 'experience', label: 'Experience' },
-    { key: 'salary', label: 'Salary' },
-    { key: 'subjects', label: 'Subjects' },
-    { key: 'documents', label: 'Documents' },
-  ] as const;
-
-  return (
-    <>
-      <PageHeader title={`${teacher.firstName} ${teacher.lastName}`}
-        description={`Employee Code: ${teacher.employeeCode} • ${teacher.designation || 'Teacher'}`}
-        actions={<span className={`inline-flex rounded-full px-3 py-1 text-xs font-medium capitalize ${teacher.status === 'active' ? 'bg-success-50 text-success-700' : 'bg-slate-100 text-slate-600'}`}>{teacher.status.replace(/_/g, ' ')}</span>} />
-
-      <div className="border-b border-slate-200 dark:border-slate-700 mb-6">
-        <nav className="flex gap-4 overflow-x-auto">
-          {TABS.map((t) => (
-            <button key={t.key} onClick={() => setTab(t.key)}
-              className={`pb-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${tab === t.key ? 'border-primary-600 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
-              {t.label}
-            </button>
-          ))}
-        </nav>
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-500 border-t-transparent" />
       </div>
+    );
+  }
 
-      {tab === 'profile' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Info label="Department" value={teacher.department?.name || '—'} />
-          <Info label="Email" value={teacher.email || '—'} />
-          <Info label="Phone" value={teacher.phone || '—'} />
-          <Info label="Gender" value={teacher.gender || '—'} />
-          <Info label="Date of Birth" value={teacher.dob ? new Date(teacher.dob).toLocaleDateString() : '—'} />
-          <Info label="Joining Date" value={teacher.joiningDate ? new Date(teacher.joiningDate).toLocaleDateString() : '—'} />
-          <Info label="Qualification" value={teacher.qualification || '—'} />
-          <Info label="Experience" value={teacher.experience || '—'} />
-        </div>
-      )}
+  if (!teacher) {
+    return <div className="p-4 text-center text-gray-500">Teacher not found</div>;
+  }
 
-      {tab === 'qualifications' && (
-        <div className="space-y-3">
-          {teacher.qualifications.length === 0 ? <p className="text-sm text-slate-500">No qualifications added.</p> :
-            teacher.qualifications.map((q) => (
-              <div key={q.id} className="rounded-lg border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
-                <p className="font-medium text-slate-900 dark:text-slate-100">{q.degree}</p>
-                <p className="text-xs text-slate-500">{q.institution} • {q.year}{q.percentage ? ` • ${q.percentage}%` : ''}</p>
-              </div>
-            ))}
-        </div>
-      )}
-
-      {tab === 'experience' && (
-        <div className="space-y-3">
-          {teacher.experiences.length === 0 ? <p className="text-sm text-slate-500">No experience added.</p> :
-            teacher.experiences.map((e) => (
-              <div key={e.id} className="rounded-lg border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
-                <p className="font-medium text-slate-900 dark:text-slate-100">{e.position} at {e.organization}</p>
-                <p className="text-xs text-slate-500">{new Date(e.fromDate).toLocaleDateString()} – {e.isCurrent ? 'Present' : e.toDate ? new Date(e.toDate).toLocaleDateString() : '—'}</p>
-              </div>
-            ))}
-        </div>
-      )}
-
-      {tab === 'salary' && (
-        <div className="max-w-md">
-          {teacher.salary ? (
-            <div className="grid grid-cols-2 gap-3">
-              <Info label="Basic" value={`₹${teacher.salary.basic}`} />
-              <Info label="HRA" value={`₹${teacher.salary.hra}`} />
-              <Info label="DA" value={`₹${teacher.salary.da}`} />
-              <Info label="Other" value={`₹${teacher.salary.other}`} />
-              <Info label="Deductions" value={`₹${teacher.salary.deductions}`} />
-              <Info label="Net" value={`₹${teacher.salary.basic + teacher.salary.hra + teacher.salary.da + teacher.salary.other - teacher.salary.deductions}`} />
-              <Info label="Bank" value={teacher.salary.bankName || '—'} />
-              <Info label="Account" value={teacher.salary.bankAccount || '—'} />
-            </div>
-          ) : <p className="text-sm text-slate-500">No salary information configured.</p>}
-        </div>
-      )}
-
-      {tab === 'subjects' && (
-        <div className="flex flex-wrap gap-2">
-          {teacher.subjects.length === 0 ? <p className="text-sm text-slate-500">No subjects assigned.</p> :
-            teacher.subjects.map((s) => (
-              <span key={s.subject.id} className="inline-flex rounded-full bg-primary-50 px-3 py-1 text-xs font-medium text-primary-700 dark:bg-primary-900/20 dark:text-primary-400">
-                {s.subject.name}
-              </span>
-            ))}
-        </div>
-      )}
-
-      {tab === 'documents' && (
-        <div className="space-y-3">
-          {teacher.documents.length === 0 ? <p className="text-sm text-slate-500">No documents uploaded.</p> :
-            teacher.documents.map((d) => (
-              <div key={d.id} className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
-                <div>
-                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{d.fileName}</p>
-                  <p className="text-xs text-slate-500 capitalize">{d.documentType.replace(/_/g, ' ')}</p>
-                </div>
-                <span className="text-xs text-slate-400">{new Date(d.createdAt).toLocaleDateString()}</span>
-              </div>
-            ))}
-        </div>
-      )}
-    </>
-  );
-}
-
-function Info({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-slate-50 dark:bg-slate-800 px-4 py-3">
-      <p className="text-xs text-slate-500 dark:text-slate-400">{label}</p>
-      <p className="mt-0.5 text-sm font-medium text-slate-900 dark:text-slate-100 capitalize">{value}</p>
+    <div className="flex-1 p-4 flex flex-col gap-4 xl:flex-row">
+      {/* LEFT */}
+      <div className="w-full xl:w-2/3">
+        {/* TOP */}
+        <div className="flex flex-col lg:flex-row gap-4">
+          {/* USER INFO CARD */}
+          <div className="bg-lamaYellow py-6 px-4 rounded-md flex-1 flex gap-4">
+            <div className="w-1/3">
+              <div className="w-24 h-24 rounded-full bg-white flex items-center justify-center">
+                {teacher.photoUrl ? (
+                  <img
+                    src={teacher.photoUrl}
+                    alt={teacher.firstName}
+                    className="w-24 h-24 rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="text-2xl font-bold text-gray-400">
+                    {teacher.firstName?.charAt(0)}{teacher.lastName?.charAt(0)}
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="w-2/3 flex flex-col justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-semibold">
+                  {teacher.firstName} {teacher.lastName}
+                </h1>
+                <span className={`px-2 py-0.5 rounded-full text-xs ${
+                  teacher.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                }`}>
+                  {teacher.status}
+                </span>
+              </div>
+              <p className="text-sm text-gray-500">{teacher.designation || 'Teacher'}</p>
+              <div className="flex items-center justify-between gap-2 flex-wrap text-xs font-medium">
+                <div className="w-full md:w-1/3 flex items-center gap-2">
+                  <Briefcase className="w-4 h-4 text-gray-500" />
+                  <span>{teacher.employeeCode}</span>
+                </div>
+                <div className="w-full md:w-1/3 flex items-center gap-2">
+                  <CalendarDays className="w-4 h-4 text-gray-500" />
+                  <span>{teacher.dob ? new Date(teacher.dob).toLocaleDateString() : 'N/A'}</span>
+                </div>
+                <div className="w-full md:w-1/3 flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-gray-500" />
+                  <span>{teacher.email || 'N/A'}</span>
+                </div>
+                <div className="w-full md:w-1/3 flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-gray-500" />
+                  <span>{teacher.phone || 'N/A'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* SMALL CARDS */}
+          <div className="flex-1 flex gap-4 justify-between flex-wrap">
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-md flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%]">
+              <Briefcase className="w-6 h-6 text-primary-500" />
+              <div>
+                <h1 className="text-sm font-semibold">{teacher.department?.name || 'General'}</h1>
+                <span className="text-sm text-gray-400">Department</span>
+              </div>
+            </div>
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-md flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%]">
+              <Briefcase className="w-6 h-6 text-primary-500" />
+              <div>
+                <h1 className="text-sm font-medium">{teacher.qualification || 'N/A'}</h1>
+                <span className="text-sm text-gray-400">Qualification</span>
+              </div>
+            </div>
+            {teacher.subjects && teacher.subjects.length > 0 && (
+              <div className="bg-white dark:bg-slate-900 p-4 rounded-md w-full">
+                <h2 className="text-sm font-medium text-gray-500 mb-2">Subjects</h2>
+                <div className="flex flex-wrap gap-1">
+                  {teacher.subjects.map((sub) => (
+                    <span key={sub.id} className="px-2 py-1 rounded bg-lamaPurpleLight text-xs">
+                      {sub.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+        {/* BOTTOM - Schedule */}
+        <div className="mt-4 bg-white dark:bg-slate-900 rounded-md p-4 h-[800px]">
+          <h1 className="text-xl font-semibold">Teacher Schedule</h1>
+          <BigCalendar />
+        </div>
+      </div>
+      {/* RIGHT */}
+      <div className="w-full xl:w-1/3 flex flex-col gap-4">
+        <Announcements />
+      </div>
     </div>
   );
 }

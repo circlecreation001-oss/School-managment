@@ -3,6 +3,7 @@ import { logger } from '../../config/index.js';
 import { prisma } from '@erp/database';
 import { homeworkRepository } from './homework.repository.js';
 import { buildPaginationMeta } from '@erp/utils';
+import { NotificationTriggers } from '../notifications/index.js';
 import type { CreateHomeworkInput, UpdateHomeworkInput, SubmitHomeworkInput, ReviewSubmissionInput, HomeworkListQuery } from './homework.schema.js';
 
 export class HomeworkService {
@@ -56,8 +57,24 @@ export class HomeworkService {
 
   async publish(tenantId: string, id: string, actorId: string) {
     await this.getById(tenantId, id);
-    await homeworkRepository.update(id, { status: 'published', publishDate: new Date() });
+    const hw = await homeworkRepository.update(id, { status: 'published', publishDate: new Date() });
     await this.audit(tenantId, actorId, 'homework', id, 'publish');
+
+    // Trigger homework alert notification
+    try {
+      const fullHw = await homeworkRepository.getById(id);
+      const teacher = await prisma.teacher.findUnique({ where: { id: fullHw.teacherId }, select: { firstName: true, lastName: true } });
+      await NotificationTriggers.homeworkAlert(tenantId, {
+        title: fullHw.title,
+        className: fullHw.class?.name || '',
+        subjectName: fullHw.subject?.name || '',
+        dueDate: fullHw.dueDate.toISOString().split('T')[0],
+        teacherName: teacher ? `${teacher.firstName} ${teacher.lastName}` : '',
+      });
+    } catch (notifyErr) {
+      logger.warn({ err: notifyErr }, 'Failed to send homework alert notification');
+    }
+
     return { message: 'Homework published' };
   }
 

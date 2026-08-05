@@ -1,5 +1,5 @@
 import { Job } from 'bullmq';
-import { env, logger } from '../config/index.js';
+import { logger } from '../config/index.js';
 
 export interface SmsJobData {
   tenantId: string;

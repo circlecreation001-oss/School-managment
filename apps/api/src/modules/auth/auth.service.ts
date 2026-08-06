@@ -660,12 +660,10 @@ export class AuthService {
         { module: 'website', key: 'cms_enabled', value: 'true' },
         { module: 'storage', key: 'bucket', value: 'schoolnex' },
       ];
-      for (const cfg of configs) {
-        await tx.organizationConfig.create({ data: { tenantId: tenant.id, ...cfg } });
-      }
+      await tx.organizationConfig.createMany({ data: configs.map(cfg => ({ tenantId: tenant.id, ...cfg })) });
 
       return { tenant, user, adminRole };
-    });
+    }, { timeout: 30000 });
 
     // ─── Auto-login: Generate tokens ───
     const { roles, permissions } = await authRepository.getUserRoles(result.user.id);

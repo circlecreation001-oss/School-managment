@@ -1,3 +1,5 @@
+import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 import { AppError } from '../../utils/errors.js';
 import { logger } from '../../config/index.js';
 import { prisma } from '@erp/database';
@@ -108,6 +110,35 @@ export class StudentService {
         address: input.guardian.address,
       });
       await studentRepository.linkParentToStudent(parent.id, student.id, input.guardian.relation, true);
+    }
+
+    // Auto-create user account for student login
+    let credentials: { username: string; password: string } | undefined;
+    try {
+      const username = admissionNumber.toLowerCase();
+      const password = crypto.randomBytes(4).toString('hex');
+      const passwordHash = await bcrypt.hash(password, 12);
+      const user = await prisma.user.create({
+        data: {
+          tenantId,
+          firstName: input.firstName,
+          lastName: input.lastName,
+          email: input.email || `${admissionNumber.toLowerCase()}@student.schoolnex.in`,
+          username,
+          passwordHash,
+          phone: input.phone,
+          status: 'active',
+          emailVerified: false,
+        },
+      });
+      const studentRole = await prisma.role.findUnique({ where: { tenantId_code: { tenantId, code: 'student' } } });
+      if (studentRole) {
+        await prisma.userRole.create({ data: { userId: user.id, roleId: studentRole.id, tenantId } });
+      }
+      await prisma.student.update({ where: { id: student.id }, data: { userId: user.id } });
+      credentials = { username, password };
+    } catch (accountErr) {
+      logger.warn({ err: accountErr, studentId: student.id }, 'Failed to create student user account (non-fatal)');
     }
 
     await this.audit(tenantId, actorId, 'student', student.id, 'admit');

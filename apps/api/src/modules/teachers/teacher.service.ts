@@ -1,4 +1,6 @@
-﻿import { AppError } from '../../utils/errors.js';
+﻿import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
+import { AppError } from '../../utils/errors.js';
 import { logger } from '../../config/index.js';
 import { prisma } from '@erp/database';
 import { teacherRepository } from './teacher.repository.js';
@@ -46,6 +48,29 @@ export class TeacherService {
 
     if (input.salary) {
       await teacherRepository.upsertSalary(teacher.id, { teacherId: teacher.id, ...input.salary } as any);
+    }
+
+    // Auto-create user account for teacher login
+    try {
+      if (input.email) {
+        const username = employeeCode.toLowerCase();
+        const password = crypto.randomBytes(4).toString('hex');
+        const passwordHash = await bcrypt.hash(password, 12);
+        const user = await prisma.user.create({
+          data: {
+            tenantId, firstName: input.firstName, lastName: input.lastName,
+            email: input.email, username, passwordHash, phone: input.phone,
+            status: 'active', emailVerified: false,
+          },
+        });
+        const teacherRole = await prisma.role.findUnique({ where: { tenantId_code: { tenantId, code: 'teacher' } } });
+        if (teacherRole) {
+          await prisma.userRole.create({ data: { userId: user.id, roleId: teacherRole.id, tenantId } });
+        }
+        await prisma.teacher.update({ where: { id: teacher.id }, data: { userId: user.id } });
+      }
+    } catch (accountErr) {
+      logger.warn({ err: accountErr, teacherId: teacher.id }, 'Failed to create teacher user account (non-fatal)');
     }
 
     await this.audit(tenantId, actorId, 'teacher', teacher.id, 'create');

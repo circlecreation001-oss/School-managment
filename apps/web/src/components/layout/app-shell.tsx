@@ -10,8 +10,8 @@ import {
   Search, MessageSquare, Bell, LogOut, User, Settings,
 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
+import { apiClient } from '@/lib/api-client';
 
-// Sidebar menu icons mapped to SchooLama-style icon paths
 const ICON_MAP: Record<string, string> = {
   LayoutDashboard: '/home.png',
   GraduationCap: '/student.png',
@@ -46,6 +46,7 @@ export function AppShell({ children }: AppShellProps) {
   const router = useRouter();
   const [showProfile, setShowProfile] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -55,6 +56,24 @@ export function AppShell({ children }: AppShellProps) {
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  useEffect(() => {
+    const loadUnread = async () => {
+      try {
+        const res = await apiClient.get<any>('/notifications/unread-count');
+        if (res.success && typeof res.data === 'number') {
+          setUnreadCount(res.data);
+        } else if (res.success && res.data?.count != null) {
+          setUnreadCount(res.data.count);
+        }
+      } catch {
+        // ignore
+      }
+    };
+    loadUnread();
+    const interval = setInterval(loadUnread, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   const isItemVisible = (item: typeof NAVIGATION[0]['items'][0]): boolean => {
@@ -101,7 +120,7 @@ export function AppShell({ children }: AppShellProps) {
                   <Link
                     href={item.href}
                     key={item.label}
-                    className={`flex items-center justify-center lg:justify-start gap-4 text-gray-500 py-2 md:px-2 rounded-md hover:bg-lamaSkyLight ${
+                    className={`flex items-center justify-center lg:justify-start gap-4 text-gray-500 py-2 md:px-2 rounded-md hover:bg-lamaSkyLight relative ${
                       isActive(item.href) ? 'bg-lamaSkyLight text-blue-600 font-medium' : ''
                     }`}
                   >
@@ -111,6 +130,11 @@ export function AppShell({ children }: AppShellProps) {
                       <div className="w-5 h-5 rounded bg-gray-200" />
                     )}
                     <span className="hidden lg:block">{item.label}</span>
+                    {item.badge && (
+                      <span className="hidden lg:inline-flex ml-auto text-[10px] bg-primary-100 text-primary-700 rounded-full px-1.5 py-0.5 font-medium">
+                        {item.badge}
+                      </span>
+                    )}
                   </Link>
                 ))}
               </div>
@@ -165,12 +189,14 @@ export function AppShell({ children }: AppShellProps) {
             <div className="bg-white rounded-full w-7 h-7 flex items-center justify-center cursor-pointer">
               <MessageSquare className="w-4 h-4 text-gray-500" />
             </div>
-            <div className="bg-white rounded-full w-7 h-7 flex items-center justify-center cursor-pointer relative">
+            <Link href="/notifications" className="bg-white rounded-full w-7 h-7 flex items-center justify-center cursor-pointer relative">
               <Bell className="w-4 h-4 text-gray-500" />
-              <div className="absolute -top-3 -right-3 w-5 h-5 flex items-center justify-center bg-purple-500 text-white rounded-full text-xs">
-                1
-              </div>
-            </div>
+              {unreadCount > 0 && (
+                <div className="absolute -top-3 -right-3 w-5 h-5 flex items-center justify-center bg-purple-500 text-white rounded-full text-xs">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </div>
+              )}
+            </Link>
             <div className="flex flex-col">
               <span className="text-xs leading-3 font-medium">
                 {user?.firstName} {user?.lastName}

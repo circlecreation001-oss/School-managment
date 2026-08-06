@@ -195,6 +195,30 @@ export class StudentService {
       occupation: input.occupation, address: input.address,
     });
     await studentRepository.linkParentToStudent(parent.id, studentId, input.relation, input.isPrimary);
+
+    // Auto-create user account for parent login
+    try {
+      if (input.email) {
+        const username = `parent-${parent.id.substring(0, 8)}`;
+        const password = crypto.randomBytes(4).toString('hex');
+        const passwordHash = await bcrypt.hash(password, 12);
+        const user = await prisma.user.create({
+          data: {
+            tenantId, firstName: input.firstName, lastName: input.lastName,
+            email: input.email, username, passwordHash, phone: input.phone,
+            status: 'active', emailVerified: false,
+          },
+        });
+        const parentRole = await prisma.role.findUnique({ where: { tenantId_code: { tenantId, code: 'parent' } } });
+        if (parentRole) {
+          await prisma.userRole.create({ data: { userId: user.id, roleId: parentRole.id, tenantId } });
+        }
+        await prisma.parent.update({ where: { id: parent.id }, data: { userId: user.id } });
+      }
+    } catch (accountErr) {
+      logger.warn({ err: accountErr, parentId: parent.id }, 'Failed to create parent user account (non-fatal)');
+    }
+
     await this.audit(tenantId, actorId, 'parent', parent.id, 'create');
     return parent;
   }

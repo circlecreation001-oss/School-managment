@@ -3,3 +3,4 @@ export { LoadingSpinner, PageLoading, CardSkeleton, TableSkeleton } from './load
 export { Modal } from './modal';
 export { ConfirmDialog } from './confirm-dialog';
 export { ToastProvider, useToast } from './toast';
+export { ErrorState } from './error-state';

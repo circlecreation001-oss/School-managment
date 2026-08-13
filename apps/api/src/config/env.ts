@@ -76,6 +76,15 @@ export const env = {
   // Encryption (AES-256)
   encryptionKey: process.env.ENCRYPTION_KEY || (isProduction ? '' : 'dev-encryption-key-32-chars-min!'),
 
+  // Payment Gateway (Razorpay)
+  razorpayKeyId: process.env.RAZORPAY_KEY_ID || '',
+  razorpayKeySecret: process.env.RAZORPAY_KEY_SECRET || '',
+  razorpayWebhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET || '',
+
+  // Super Admin
+  superAdminEmail: process.env.SUPER_ADMIN_EMAIL || '',
+  superAdminPassword: process.env.SUPER_ADMIN_PASSWORD || '',
+
   isDevelopment() {
     return this.nodeEnv === 'development';
   },

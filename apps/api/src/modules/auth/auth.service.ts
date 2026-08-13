@@ -90,10 +90,15 @@ export class AuthService {
       throw new AppError(403, 'TENANT_ARCHIVED', 'This institution account no longer exists.');
     }
 
-    // Check account lockout (keyed on identifier)
+    // Check account lockout (keyed on identifier) - graceful if Redis unavailable
     const lockKey = `auth:lock:${tenant.id}:${input.identifier}`;
-    const isLocked = await redis.get(lockKey);
-    if (isLocked) throw new AppError(423, 'ACCOUNT_LOCKED', AUTH_ERRORS.ACCOUNT_LOCKED);
+    try {
+      const isLocked = await redis.get(lockKey);
+      if (isLocked) throw new AppError(423, 'ACCOUNT_LOCKED', AUTH_ERRORS.ACCOUNT_LOCKED);
+    } catch (err: any) {
+      if (err instanceof AppError) throw err;
+      // Redis unavailable — skip lockout check
+    }
 
     // Find user by any supported identifier
     const user = await authRepository.findUserByIdentifier(tenant.id, input.identifier);
@@ -113,8 +118,8 @@ export class AuthService {
       throw new AppError(401, 'INVALID_CREDENTIALS', AUTH_ERRORS.INVALID_CREDENTIALS);
     }
 
-    // Clear failed attempts on success
-    await redis.del(`auth:attempts:${tenant.id}:${input.identifier}`);
+    // Clear failed attempts on success (graceful if Redis unavailable)
+    try { await redis.del(`auth:attempts:${tenant.id}:${input.identifier}`); } catch { /* ignore */ }
 
     // Get roles and permissions
     const { roles, permissions } = await authRepository.getUserRoles(user.id);
@@ -756,16 +761,20 @@ export class AuthService {
   }
 
   private async incrementFailedAttempts(tenantId: string, identifier: string): Promise<void> {
-    const attemptsKey = `auth:attempts:${tenantId}:${identifier}`;
-    const lockKey = `auth:lock:${tenantId}:${identifier}`;
+    try {
+      const attemptsKey = `auth:attempts:${tenantId}:${identifier}`;
+      const lockKey = `auth:lock:${tenantId}:${identifier}`;
 
-    const attempts = await redis.incr(attemptsKey);
-    await redis.expire(attemptsKey, AUTH_CONSTANTS.LOCKOUT_DURATION_MINUTES * 60);
+      const attempts = await redis.incr(attemptsKey);
+      await redis.expire(attemptsKey, AUTH_CONSTANTS.LOCKOUT_DURATION_MINUTES * 60);
 
-    if (attempts >= AUTH_CONSTANTS.MAX_LOGIN_ATTEMPTS) {
-      await redis.setex(lockKey, AUTH_CONSTANTS.LOCKOUT_DURATION_MINUTES * 60, '1');
-      await redis.del(attemptsKey);
-      logger.warn({ tenantId, identifier }, 'Account locked due to too many failed attempts');
+      if (attempts >= AUTH_CONSTANTS.MAX_LOGIN_ATTEMPTS) {
+        await redis.setex(lockKey, AUTH_CONSTANTS.LOCKOUT_DURATION_MINUTES * 60, '1');
+        await redis.del(attemptsKey);
+        logger.warn({ tenantId, identifier }, 'Account locked due to too many failed attempts');
+      }
+    } catch {
+      // Redis unavailable — skip lockout tracking
     }
   }
 

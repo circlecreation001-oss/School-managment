@@ -11,24 +11,36 @@ const server = http.createServer(app);
 initializeSocket(server);
 
 async function bootstrap(): Promise<void> {
+  // Connect to Redis (non-fatal in development)
   try {
-    // Connect to Redis
     await connectRedis();
     logger.info('Redis connected');
+  } catch (err: any) {
+    if (env.nodeEnv === 'production') {
+      logger.fatal({ err }, 'Redis connection required in production');
+      process.exit(1);
+    }
+    logger.warn({ err: err.message }, 'Redis unavailable — running without cache/queues');
+  }
 
+  try {
     // Verify database connection
     await prisma.$connect();
     logger.info('Database connected');
 
-    // Ensure Platform Super Admin exists (env-driven, no hardcoded credentials)
+    // Ensure Platform Super Admin exists
     await ensurePlatformSuperAdmin();
 
-    // Repair any tenants missing permissions (one-time migration for pre-fix tenants)
+    // Repair any tenants missing permissions
     await repairTenantPermissions();
 
-    // Start BullMQ workers
-    startWorkers();
-    logger.info('BullMQ workers initialized');
+    // Start BullMQ workers (non-fatal if Redis unavailable)
+    try {
+      startWorkers();
+      logger.info('BullMQ workers initialized');
+    } catch (err: any) {
+      logger.warn({ err: err.message }, 'BullMQ workers failed to start (Redis unavailable)');
+    }
 
     // Start HTTP server
     server.listen(env.apiPort, () => {

@@ -98,7 +98,7 @@ export class FeeRepository {
     const where: Prisma.InvoiceWhereInput = {
       tenantId, deletedAt: null, status: { in: ['issued', 'partially_paid', 'overdue'] },
     };
-    if (classId) where.classId = classId;
+    if (classId) where.student = { classId };
     return prisma.invoice.findMany({
       where,
       include: { student: { select: { firstName: true, lastName: true, admissionNumber: true, class: { select: { name: true } } } } },

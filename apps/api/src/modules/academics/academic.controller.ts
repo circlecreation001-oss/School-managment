@@ -33,7 +33,7 @@ export class AcademicController {
     try { sendSuccess(res, await academicService.listDepartments(req.user!.tenantId, await resolveBranch(req))); } catch (e) { next(e); }
   }
   async createDepartment(req: Request, res: Response, next: NextFunction) {
-    try { sendCreated(res, await academicService.createDepartment(req.user!.tenantId, req.body.branchId, req.body, req.user!.id)); } catch (e) { next(e); }
+    try { sendCreated(res, await academicService.createDepartment(req.user!.tenantId, await resolveBranch(req), req.body, req.user!.id)); } catch (e) { next(e); }
   }
   async updateDepartment(req: Request, res: Response, next: NextFunction) {
     try { sendSuccess(res, await academicService.updateDepartment(req.user!.tenantId, req.params.id!, req.body, req.user!.id)); } catch (e) { next(e); }
@@ -64,7 +64,7 @@ export class AcademicController {
     try { sendSuccess(res, await academicService.getClass(req.user!.tenantId, req.params.id!)); } catch (e) { next(e); }
   }
   async createClass(req: Request, res: Response, next: NextFunction) {
-    try { sendCreated(res, await academicService.createClass(req.user!.tenantId, req.body.branchId, req.body, req.user!.id)); } catch (e) { next(e); }
+    try { sendCreated(res, await academicService.createClass(req.user!.tenantId, await resolveBranch(req), req.body, req.user!.id)); } catch (e) { next(e); }
   }
   async updateClass(req: Request, res: Response, next: NextFunction) {
     try { sendSuccess(res, await academicService.updateClass(req.user!.tenantId, req.params.id!, req.body, req.user!.id)); } catch (e) { next(e); }

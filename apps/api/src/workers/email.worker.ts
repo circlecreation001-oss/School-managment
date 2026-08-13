@@ -51,8 +51,9 @@ export async function processEmailJob(job: Job<EmailJobData>): Promise<void> {
 
   const info = await transport.sendMail({
     from: `"${env.smtpFromName}" <${env.smtpFromEmail}>`,
+    replyTo: 'circlecreation001@gmail.com',
     to: recipient,
-    subject: subject || 'Notification from Education ERP',
+    subject: subject || 'Notification from SchoolNex',
     text: body,
     html: html || body,
   });

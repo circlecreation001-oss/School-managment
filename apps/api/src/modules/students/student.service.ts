@@ -159,7 +159,7 @@ export class StudentService {
       logger.warn({ err: notifyErr }, 'Failed to send admission confirmation notification');
     }
 
-    return student;
+    return { ...student, credentials };
   }
 
   // ─── UPDATE ───

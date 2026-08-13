@@ -23,6 +23,16 @@ router.get('/', view, validateRequest({ query: studentListQuerySchema }), studen
 router.get('/stats', view, studentController.getStats);
 router.get('/export', exp, studentController.exportStudents);
 router.get('/me', view, studentController.getMe);
+
+// Named routes BEFORE /:id to avoid route conflicts
+router.get('/admissions', view, studentController.listAdmissions);
+router.post('/admissions', create, studentController.createAdmission);
+router.patch('/admissions/:id', edit, studentController.updateAdmissionStatus);
+router.get('/parents', view, studentController.listParents);
+router.post('/promote', requirePermission(['students:approve']), validate(promoteStudentsSchema), studentController.promote);
+router.post('/bulk/import', create, validate(bulkImportStudentsSchema), studentController.bulkImport);
+
+// /:id routes
 router.get('/:id', view, studentController.getById);
 router.post('/', create, validate(createAdmissionSchema), studentController.admit);
 router.patch('/:id', edit, validate(updateStudentSchema), studentController.update);
@@ -40,22 +50,10 @@ router.delete('/:id/documents/:docId', edit, studentController.deleteDocument);
 router.post('/:id/documents/:docId/verify', requirePermission(['students:approve']), studentController.verifyDocument);
 
 // Promotion & Transfer
-router.post('/promote', requirePermission(['students:approve']), validate(promoteStudentsSchema), studentController.promote);
 router.post('/:id/transfer', requirePermission(['students:approve']), validate(transferStudentSchema), studentController.transfer);
 
 // Certificates & Timeline
 router.get('/:id/certificates', view, studentController.getCertificates);
 router.get('/:id/timeline', view, studentController.getTimeline);
-
-// Admissions
-router.get('/admissions', view, studentController.listAdmissions);
-router.post('/admissions', create, studentController.createAdmission);
-router.patch('/admissions/:id', edit, studentController.updateAdmissionStatus);
-
-// Parents list
-router.get('/parents', view, studentController.listParents);
-
-// Bulk
-router.post('/bulk/import', create, validate(bulkImportStudentsSchema), studentController.bulkImport);
 
 export { router as studentRouter };

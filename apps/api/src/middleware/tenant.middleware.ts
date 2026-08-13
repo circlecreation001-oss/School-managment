@@ -76,15 +76,19 @@ export function requireTenant(req: Request, _res: Response, next: NextFunction):
 }
 
 async function loadTenantContext(tenantId: string, req: Request): Promise<void> {
-  // Check Redis cache first (performance)
-  const { redis } = await import('../config/index.js');
-  const cacheKey = `tenant:ctx:${tenantId}`;
-  const cached = await redis.get(cacheKey);
+  // Check Redis cache first (performance) — graceful if Redis unavailable
+  try {
+    const { redis } = await import('../config/index.js');
+    const cacheKey = `tenant:ctx:${tenantId}`;
+    const cached = await redis.get(cacheKey);
 
-  if (cached) {
-    req.tenant = JSON.parse(cached);
-    req.tenantId = tenantId;
-    return;
+    if (cached) {
+      req.tenant = JSON.parse(cached);
+      req.tenantId = tenantId;
+      return;
+    }
+  } catch {
+    // Redis unavailable — fall through to DB query
   }
 
   const tenant = await prisma.tenant.findUnique({
@@ -111,8 +115,12 @@ async function loadTenantContext(tenantId: string, req: Request): Promise<void> 
     features: [],
   };
 
-  // Cache for 5 minutes
-  await redis.setex(cacheKey, 300, JSON.stringify(ctx));
+  // Cache for 5 minutes (graceful if Redis unavailable)
+  try {
+    const { redis } = await import('../config/index.js');
+    const cacheKey = `tenant:ctx:${tenantId}`;
+    await redis.setex(cacheKey, 300, JSON.stringify(ctx));
+  } catch { /* Redis unavailable */ }
 
   req.tenant = ctx;
   req.tenantId = tenant.id;

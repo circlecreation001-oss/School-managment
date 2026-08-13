@@ -76,7 +76,7 @@ export class WebsiteController {
         tenant = await prisma.tenant.create({ data: { name: 'SchoolNex Platform', slug: 'platform', status: 'active', subscriptionStatus: 'active', planCode: 'enterprise' } });
       }
       // Store as enquiry with source=enterprise and full data as metadata
-      const lead = await prisma.enquiry.create({
+      const lead = await prisma.contactEnquiry.create({
         data: {
           tenantId: tenant.id,
           fullName: data.contactPerson || '',
@@ -85,8 +85,7 @@ export class WebsiteController {
           subject: `Enterprise Inquiry - ${data.schoolName || 'Unknown'}`,
           message: data.requirements || '',
           source: 'enterprise',
-          metadata: JSON.parse(JSON.stringify(data)),
-        } as any,
+        },
       });
       // Queue admin notification
       try {

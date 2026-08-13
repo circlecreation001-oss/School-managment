@@ -97,7 +97,7 @@ export class FeeController {
         throw new Error('No completed payment found for this invoice');
       }
 
-      const student = invoice.student;
+      const student = invoice.student as any;
       if (!student) {
         throw new Error('Student not found for this invoice');
       }

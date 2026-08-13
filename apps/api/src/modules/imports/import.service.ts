@@ -208,17 +208,19 @@ export class ImportService {
     await prisma.student.create({
       data: {
         tenantId, branchId,
+        academicSessionId: classId ? (await prisma.class.findUnique({ where: { id: classId }, select: { academicSessionId: true } }))?.academicSessionId || '' : '',
         firstName: row.firstName || '',
         lastName: row.lastName || '',
         admissionNumber: admissionNumber || `IMP${Date.now().toString(36).toUpperCase()}`,
         email: row.email || null,
         phone: row.phone ? String(row.phone) : null,
         gender: row.gender ? String(row.gender).toLowerCase() as any : null,
-        dateOfBirth: row.dateOfBirth ? new Date(row.dateOfBirth) : null,
-        classId, sectionId,
+        dob: row.dateOfBirth ? new Date(row.dateOfBirth) : null,
+        classId: classId || undefined,
+        sectionId: sectionId || undefined,
         status: 'active',
         createdBy: actorId,
-      },
+      } as any,
     });
   }
 

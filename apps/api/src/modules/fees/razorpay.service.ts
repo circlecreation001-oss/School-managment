@@ -60,7 +60,7 @@ export class RazorpayService {
     const razorpay = getRazorpayInstance();
     
     const generatedSignature = crypto
-      .createHmac('sha256', razorpay.key_secret)
+      .createHmac('sha256', env.razorpayKeySecret)
       .update(`${input.razorpayOrderId}|${input.razorpayPaymentId}`)
       .digest('hex');
     
@@ -86,7 +86,7 @@ export class RazorpayService {
   async capturePayment(paymentId: string, amount: number) {
     const razorpay = getRazorpayInstance();
     try {
-      return await razorpay.payments.capture(paymentId, amount);
+      return await razorpay.payments.capture(paymentId, amount, 'INR');
     } catch (err: any) {
       logger.error({ err: err.message, paymentId }, 'Failed to capture Razorpay payment');
       throw new AppError(500, 'PAYMENT_ERROR', 'Failed to capture payment');

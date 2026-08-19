@@ -8,13 +8,14 @@ import { logger } from './logger.js';
 const redisUrl = env.redisUrl;
 
 export const redis = new Redis(redisUrl, {
-  maxRetriesPerRequest: 1,
+  maxRetriesPerRequest: null,
   retryStrategy(times) {
-    if (times > 3) return null; // Stop after 3 attempts in dev
-    return Math.min(times * 500, 3000);
+    if (times > 2) return null;
+    return Math.min(times * 300, 2000);
   },
   lazyConnect: true,
-  connectTimeout: 5000,
+  connectTimeout: 3000,
+  commandTimeout: 3000,
   // TLS is required for Upstash (rediss:// URLs)
   ...(redisUrl.startsWith('rediss://') ? { tls: { rejectUnauthorized: false } } : {}),
 });

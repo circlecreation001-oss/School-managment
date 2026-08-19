@@ -96,25 +96,25 @@ export class OtpService {
   }
 
   /**
-   * Send OTP via email queue.
+   * Send OTP via direct SMTP (bypasses BullMQ for reliability).
    */
   async sendOtpEmail(email: string, otp: string, purpose: string): Promise<void> {
     try {
-      const { emailQueue } = await import('../../config/index.js');
+      const { sendEmailDirect } = await import('../../utils/send-email.js');
       const subjects: Record<string, string> = {
         signup: 'SchoolNex - Verify Your Email',
         login: 'SchoolNex - Login Verification',
         reset: 'SchoolNex - Password Reset OTP',
         invite: 'SchoolNex - Account Activation',
       };
-      await emailQueue.add('send-otp', {
+      await sendEmailDirect({
         to: email,
         subject: subjects[purpose] || 'SchoolNex - Verification Code',
-        body: `Your SchoolNex verification code is: ${otp}\n\nThis code expires in 5 minutes.\nDo not share this code with anyone.\n\nIf you did not request this, please ignore this email.`,
-        tenantId: 'platform',
+        text: `Your SchoolNex verification code is: ${otp}\n\nThis code expires in 5 minutes.\nDo not share this code with anyone.\n\nIf you did not request this, please ignore this email.`,
+        html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px"><h2 style="color:#2563eb">Verification Code</h2><p>Your verification code is:</p><div style="margin:24px 0;text-align:center"><span style="font-size:32px;font-weight:700;letter-spacing:8px;color:#1e293b;background:#f1f5f9;padding:16px 32px;border-radius:12px;display:inline-block">${otp}</span></div><p style="color:#64748b;font-size:13px">This code expires in <strong>5 minutes</strong>. Do not share it.</p><hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0"><p style="color:#94a3b8;font-size:11px">SchoolNex - School Management ERP</p></div>`,
       });
     } catch (err) {
-      logger.warn({ err, email }, 'Failed to queue OTP email (non-fatal)');
+      logger.warn({ err, email }, 'Failed to send OTP email');
     }
   }
 }

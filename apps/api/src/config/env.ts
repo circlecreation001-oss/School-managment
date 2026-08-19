@@ -81,6 +81,9 @@ export const env = {
   razorpayKeySecret: process.env.RAZORPAY_KEY_SECRET || '',
   razorpayWebhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET || '',
 
+  // Brevo API (server-side only - NEVER expose to frontend)
+  brevoApiKey: process.env.BREVO_API_KEY || '',
+
   // Super Admin
   superAdminEmail: process.env.SUPER_ADMIN_EMAIL || '',
   superAdminPassword: process.env.SUPER_ADMIN_PASSWORD || '',

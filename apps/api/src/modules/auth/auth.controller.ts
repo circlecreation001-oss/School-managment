@@ -164,7 +164,17 @@ export class AuthController {
         return;
       }
       await otpService.verifyOtp(email, otp, purpose);
-      sendSuccess(res, { verified: true }, 'OTP verified successfully.');
+
+      // If purpose is signup, mark email as verified in database
+      if (purpose === 'signup') {
+        const { prisma } = await import('@erp/database');
+        const user = await prisma.user.findFirst({ where: { email: email.toLowerCase().trim() } });
+        if (user) {
+          await prisma.user.update({ where: { id: user.id }, data: { emailVerified: true } });
+        }
+      }
+
+      sendSuccess(res, { verified: true }, 'OTP verified successfully. Your email is now verified.');
     } catch (err) { next(err); }
   }
 

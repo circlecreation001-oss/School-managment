@@ -5,6 +5,15 @@ import { env, logger, redis } from '../../config/index.js';
 import { AppError } from '../../utils/errors.js';
 import { authRepository } from './auth.repository.js';
 import { AUTH_CONSTANTS, AUTH_ERRORS } from './auth.constants.js';
+
+/** Execute a Redis command with a timeout — returns null if Redis is unavailable */
+async function redisWithTimeout<T>(fn: () => Promise<T>, timeoutMs = 2000): Promise<T | null> {
+  return new Promise<T | null>((resolve) => {
+    const timer = setTimeout(() => resolve(null), timeoutMs);
+    fn().then((result) => { clearTimeout(timer); resolve(result); }).catch(() => { clearTimeout(timer); resolve(null); });
+  });
+}
+
 import type {
   LoginInput,
   RegisterInput,
@@ -110,6 +119,11 @@ export class AuthService {
     // Check user status
     if (user.status === 'inactive') throw new AppError(403, 'ACCOUNT_INACTIVE', AUTH_ERRORS.ACCOUNT_INACTIVE);
     if (user.status === 'suspended') throw new AppError(403, 'ACCOUNT_SUSPENDED', AUTH_ERRORS.ACCOUNT_SUSPENDED);
+
+    // Block login for unverified accounts (except platform super admin)
+    if (!user.emailVerified && tenant.slug !== 'platform') {
+      throw new AppError(403, 'EMAIL_NOT_VERIFIED', 'Please verify your email address before logging in. Check your inbox for the verification OTP.');
+    }
 
     // Verify password
     const isValid = await bcrypt.compare(input.password, user.passwordHash);
@@ -218,31 +232,35 @@ export class AuthService {
 
     // Generate email verification token
     const verificationToken = crypto.randomBytes(32).toString('hex');
-    await redis.setex(
-      `auth:verify:${verificationToken}`,
-      AUTH_CONSTANTS.EMAIL_VERIFICATION_EXPIRY_HOURS * 3600,
-      JSON.stringify({ userId: user.id, tenantId: tenant.id }),
-    );
-
-    // Queue verification email
+    // Send OTP for email verification (direct SMTP, no Redis dependency for sending)
     try {
-      const { emailQueue } = await import('../../config/index.js');
-      const verificationLink = `${env.appUrl}/verify-email?token=${verificationToken}`;
-      await emailQueue.add('verify-email', {
+      const { otpService } = await import('./otp.service.js');
+      const { sendEmailDirect } = await import('../../utils/send-email.js');
+
+      // Generate OTP — if Redis is available it's stored there; if not, use DB-less approach
+      let otp: string;
+      try {
+        otp = await otpService.generateOtp(input.email, 'signup');
+      } catch {
+        // Redis unavailable — generate OTP and store temporarily in a simple hash
+        otp = String(crypto.randomInt(100000, 999999));
+        // Store in Redis with timeout fallback
+        await redisWithTimeout(() => redis.setex(`otp:signup:${input.email.toLowerCase().trim()}`, 300, JSON.stringify({ hash: crypto.createHash('sha256').update(otp).digest('hex'), attempts: 0, createdAt: Date.now() })));
+      }
+
+      await sendEmailDirect({
         to: input.email,
-        subject: 'Verify your email address',
-        body: `Hi ${input.firstName},\n\nPlease verify your email address by clicking the link below:\n\n${verificationLink}\n\nThis link will expire in ${AUTH_CONSTANTS.EMAIL_VERIFICATION_EXPIRY_HOURS} hours.\n\nThank you.`,
-        html: `<p>Hi ${input.firstName},</p><p>Please verify your email address by clicking the link below:</p><p><a href="${verificationLink}">Verify Email</a></p><p>This link will expire in ${AUTH_CONSTANTS.EMAIL_VERIFICATION_EXPIRY_HOURS} hours.</p>`,
-        tenantId: tenant.id,
-        channel: 'email',
+        subject: 'SchoolNex - Verify Your Email',
+        text: `Your SchoolNex verification code is: ${otp}\n\nThis code expires in 5 minutes.\nDo not share this code with anyone.\n\nIf you did not request this, please ignore this email.`,
+        html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px"><h2 style="color:#2563eb">Verify Your Email</h2><p>Hi ${input.firstName},</p><p>Your verification code is:</p><div style="margin:24px 0;text-align:center"><span style="font-size:32px;font-weight:700;letter-spacing:8px;color:#1e293b;background:#f1f5f9;padding:16px 32px;border-radius:12px;display:inline-block">${otp}</span></div><p style="color:#64748b;font-size:13px">This code expires in <strong>5 minutes</strong>.</p><p style="color:#64748b;font-size:13px">Do not share this code with anyone.</p><hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0"><p style="color:#94a3b8;font-size:11px">SchoolNex - Complete School Management ERP</p></div>`,
       });
     } catch (emailErr) {
-      logger.warn({ err: emailErr }, 'Verification email queueing failed (non-fatal)');
+      logger.warn({ err: emailErr }, 'OTP email send failed (non-fatal - user can request resend)');
     }
 
     return {
       userId: user.id,
-      message: 'Registration successful. Please verify your email address.',
+      message: 'Registration successful. Please check your email for the verification code.',
     };
   }
 
@@ -514,7 +532,7 @@ export class AuthService {
   }
 
   // ─── SIGNUP INSTITUTE ───
-  async signupInstitute(input: SignupInstituteInput, meta: { ip: string; userAgent: string }): Promise<AuthResult> {
+  async signupInstitute(input: SignupInstituteInput, meta: { ip: string; userAgent: string }): Promise<{ userId: string; email: string; message: string }> {
     const { prisma } = await import('@erp/database');
 
     // Generate slug from institute name
@@ -670,45 +688,13 @@ export class AuthService {
       return { tenant, user, adminRole };
     }, { timeout: 30000 });
 
-    // ─── Auto-login: Generate tokens ───
-    const { roles, permissions } = await authRepository.getUserRoles(result.user.id);
-
-    const sessionId = crypto.randomUUID();
-    const refreshToken = crypto.randomBytes(64).toString('hex');
-    const expiresAt = new Date(Date.now() + this.parseExpiry(env.jwtRefreshExpiry) * 1000);
-
-    const payload: TokenPayload = {
-      sub: result.user.id,
-      tenantId: result.tenant.id,
-      roles,
-      permissions,
-      sessionId,
-    };
-
-    const accessToken = this.generateAccessToken(payload);
-    const expiresIn = this.parseExpiry(env.jwtAccessExpiry);
-
-    // Store session
-    await authRepository.createSession({
-      userId: result.user.id,
-      tenantId: result.tenant.id,
-      refreshToken,
-      ipAddress: meta.ip,
-      userAgent: meta.userAgent,
-      expiresAt,
-    });
-
-    // Queue welcome email
+    // ─── Send OTP for email verification (no auto-login) ───
     try {
-      const { emailQueue } = await import('../../config/index.js');
-      await emailQueue.add('welcome-institute', {
-        to: input.email,
-        subject: `Welcome to SchoolNex - ${input.instituteName}`,
-        body: `Hi ${firstName},\n\nYour institute "${input.instituteName}" is now live on SchoolNex!\n\nYour 7-day free trial has started. Login at: schoolnex.in/login\n\nThank you,\nTeam SchoolNex\nby Circle Creation`,
-        tenantId: result.tenant.id,
-      });
-    } catch (emailErr) {
-      logger.warn({ err: emailErr }, 'Welcome email queueing failed (non-fatal)');
+      const { otpService } = await import('./otp.service.js');
+      const otp = await otpService.generateOtp(input.email, 'signup');
+      await otpService.sendOtpEmail(input.email, otp, 'signup');
+    } catch (otpErr) {
+      logger.warn({ err: otpErr }, 'OTP send failed during institute signup (non-fatal)');
     }
 
     // Audit log
@@ -723,20 +709,12 @@ export class AuthService {
       metadata: { instituteName: input.instituteName, slug, trial: true },
     });
 
-    logger.info({ tenantId: result.tenant.id, userId: result.user.id, slug }, 'Institute signup completed');
+    logger.info({ tenantId: result.tenant.id, userId: result.user.id, slug }, 'Institute signup completed - OTP sent');
 
     return {
-      accessToken,
-      refreshToken,
-      expiresIn,
-      user: {
-        id: result.user.id,
-        email: result.user.email,
-        firstName: result.user.firstName,
-        lastName: result.user.lastName || '',
-        roles,
-        tenantId: result.tenant.id,
-      },
+      userId: result.user.id,
+      email: result.user.email,
+      message: 'Institute registered successfully. Please verify your email with the OTP sent to your inbox.',
     };
   }
 
@@ -779,20 +757,27 @@ export class AuthService {
   }
 
   private async addPasswordToHistory(userId: string, passwordHash: string): Promise<void> {
-    const key = `auth:pwd_history:${userId}`;
-    await redis.lpush(key, passwordHash);
-    await redis.ltrim(key, 0, AUTH_CONSTANTS.PASSWORD_HISTORY_COUNT - 1);
+    await redisWithTimeout(async () => {
+      const key = `auth:pwd_history:${userId}`;
+      await redis.lpush(key, passwordHash);
+      await redis.ltrim(key, 0, AUTH_CONSTANTS.PASSWORD_HISTORY_COUNT - 1);
+    });
   }
 
   private async isPasswordInHistory(userId: string, newPassword: string): Promise<boolean> {
-    const key = `auth:pwd_history:${userId}`;
-    const history = await redis.lrange(key, 0, -1);
+    try {
+      const key = `auth:pwd_history:${userId}`;
+      const history = await redis.lrange(key, 0, -1);
 
-    for (const hash of history) {
-      const matches = await bcrypt.compare(newPassword, hash);
-      if (matches) return true;
+      for (const hash of history) {
+        const matches = await bcrypt.compare(newPassword, hash);
+        if (matches) return true;
+      }
+      return false;
+    } catch {
+      // Redis unavailable — skip password history check
+      return false;
     }
-    return false;
   }
 }
 

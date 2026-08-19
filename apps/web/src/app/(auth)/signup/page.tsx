@@ -99,12 +99,7 @@ export default function SignupPage() {
     setServerError('');
 
     try {
-      const res = await apiClient.post<{
-        accessToken: string;
-        refreshToken: string;
-        expiresIn: number;
-        user: { id: string; email: string; firstName: string; lastName: string; roles: string[]; tenantId: string };
-      }>('/auth/signup-institute', {
+      const res = await apiClient.post<any>('/auth/signup-institute', {
         instituteName: form.instituteName.trim(),
         ownerName: form.ownerName.trim(),
         email: form.email.trim().toLowerCase(),
@@ -119,10 +114,8 @@ export default function SignupPage() {
       });
 
       if (res.success && res.data) {
-        localStorage.setItem('accessToken', res.data.accessToken);
-        localStorage.setItem('refreshToken', res.data.refreshToken);
-        localStorage.setItem('user', JSON.stringify({ ...res.data.user, permissions: [] }));
-        router.push('/dashboard');
+        // Don't auto-login — redirect to OTP verification
+        router.push(`/verify-otp?email=${encodeURIComponent(form.email.trim().toLowerCase())}`);
       } else {
         setServerError(res.error?.message || 'Registration failed. Please try again.');
       }

@@ -2,9 +2,6 @@ import Redis from 'ioredis';
 import { env } from './env.js';
 import { logger } from './logger.js';
 
-// Support Upstash Redis URL (standard ioredis connection via rediss://)
-// Upstash provides both REST API and standard Redis protocol URLs.
-// For ioredis, use the standard URL from Upstash dashboard (starts with rediss://)
 const redisUrl = env.redisUrl;
 
 export const redis = new Redis(redisUrl, {
@@ -27,6 +24,11 @@ redis.on('connect', () => {
 redis.on('error', (err) => {
   logger.error({ err: err.message }, 'Redis connection error');
 });
+
+/** Check if Redis connection is ready for commands */
+export function isRedisReady(): boolean {
+  return redis.status === 'ready';
+}
 
 export async function connectRedis(): Promise<void> {
   try {

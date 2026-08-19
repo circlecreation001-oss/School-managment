@@ -343,45 +343,27 @@ export class AuthService {
     }
   }
 
-  // ─── FORGOT PASSWORD ───
+  // ─── FORGOT PASSWORD (OTP-based) ───
   async forgotPassword(input: ForgotPasswordInput): Promise<{ message: string }> {
+    // Don't reveal whether email exists — always return success message
+    const successMsg = 'If the email exists, a verification code has been sent.';
+
     const tenantSlug = input.tenantSlug || 'platform';
     const tenant = await authRepository.findTenantBySlug(tenantSlug);
-    if (!tenant) {
-      // Don't reveal tenant existence
-      return { message: 'If the email exists, a reset link has been sent.' };
-    }
+    if (!tenant) return { message: successMsg };
 
     const user = await authRepository.findUserByEmail(tenant.id, input.email);
-    if (!user) {
-      // Don't reveal user existence
-      return { message: 'If the email exists, a reset link has been sent.' };
-    }
+    if (!user) return { message: successMsg };
 
-    // Generate reset token
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-
-    await redis.setex(
-      `auth:reset:${hashedToken}`,
-      AUTH_CONSTANTS.RESET_TOKEN_EXPIRY_MINUTES * 60,
-      JSON.stringify({ userId: user.id, tenantId: tenant.id }),
-    );
-
-    // Queue password reset email
+    // Generate and send OTP
     try {
-      const { emailQueue } = await import('../../config/index.js');
-      const resetLink = `${env.appUrl}/reset-password?token=${resetToken}`;
-      await emailQueue.add('reset-password', {
-        to: input.email,
-        subject: 'Reset your password',
-        body: `Hi,\n\nYou requested a password reset. Click the link below to set a new password:\n\n${resetLink}\n\nThis link will expire in ${AUTH_CONSTANTS.RESET_TOKEN_EXPIRY_MINUTES} minutes.\n\nIf you did not request this, please ignore this email.\n\nThank you.`,
-        html: `<p>Hi,</p><p>You requested a password reset. Click the link below to set a new password:</p><p><a href="${resetLink}">Reset Password</a></p><p>This link will expire in ${AUTH_CONSTANTS.RESET_TOKEN_EXPIRY_MINUTES} minutes.</p><p>If you did not request this, please ignore this email.</p>`,
-        tenantId: tenant.id,
-        channel: 'email',
-      });
-    } catch (emailErr) {
-      logger.warn({ err: emailErr }, 'Reset email queueing failed (non-fatal)');
+      const { otpService } = await import('./otp.service.js');
+      const otp = await otpService.generateOtp(input.email, 'reset');
+      await otpService.sendOtpEmail(input.email, otp, 'reset');
+    } catch (otpErr: any) {
+      // If it's a rate limit error, pass it through
+      if (otpErr?.statusCode === 429) throw otpErr;
+      logger.warn({ err: otpErr }, 'Forgot password OTP send failed');
     }
 
     // Audit log
@@ -393,39 +375,48 @@ export class AuthService {
       action: 'forgot_password',
     });
 
-    return { message: 'If the email exists, a reset link has been sent.' };
+    return { message: successMsg };
   }
 
-  // ─── RESET PASSWORD ───
+  // ─── RESET PASSWORD (OTP-verified) ───
   async resetPassword(input: ResetPasswordInput): Promise<{ message: string }> {
-    const hashedToken = crypto.createHash('sha256').update(input.token).digest('hex');
-    const stored = await redis.get(`auth:reset:${hashedToken}`);
+    // Input now expects: { email, otp, password, confirmPassword }
+    // The OTP was already verified by the frontend calling /auth/otp/verify with purpose='reset'
+    // But we verify again here for security (belt + suspenders)
+    const email = (input as any).email;
+    const otp = (input as any).otp;
 
-    if (!stored) throw new AppError(400, 'RESET_TOKEN_INVALID', AUTH_ERRORS.RESET_TOKEN_INVALID);
+    if (!email || !otp) {
+      throw new AppError(400, 'BAD_REQUEST', 'Email and OTP are required for password reset.');
+    }
 
-    const { userId, tenantId } = JSON.parse(stored) as { userId: string; tenantId: string };
+    // Verify OTP
+    const { otpService } = await import('./otp.service.js');
+    await otpService.verifyOtp(email, otp, 'reset');
+
+    // Find the user
+    const { prisma } = await import('@erp/database');
+    const user = await prisma.user.findFirst({ where: { email: email.toLowerCase().trim() } });
+    if (!user) throw new AppError(404, 'USER_NOT_FOUND', 'Account not found.');
 
     // Check password history
-    const isInHistory = await this.isPasswordInHistory(userId, input.password);
+    const isInHistory = await this.isPasswordInHistory(user.id, input.password);
     if (isInHistory) throw new AppError(400, 'PASSWORD_IN_HISTORY', AUTH_ERRORS.PASSWORD_IN_HISTORY);
 
     // Hash and update
     const passwordHash = await bcrypt.hash(input.password, 12);
-    await authRepository.updatePassword(userId, passwordHash);
-    await this.addPasswordToHistory(userId, passwordHash);
-
-    // Invalidate token
-    await redis.del(`auth:reset:${hashedToken}`);
+    await authRepository.updatePassword(user.id, passwordHash);
+    await this.addPasswordToHistory(user.id, passwordHash);
 
     // Revoke all sessions (force re-login)
-    await authRepository.revokeAllUserSessions(userId, 'password_reset');
+    await authRepository.revokeAllUserSessions(user.id, 'password_reset');
 
     // Audit log
     await authRepository.createAuditLog({
-      tenantId,
-      actorUserId: userId,
+      tenantId: user.tenantId,
+      actorUserId: user.id,
       entityType: 'user',
-      entityId: userId,
+      entityId: user.id,
       action: 'password_reset',
     });
 

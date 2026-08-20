@@ -53,7 +53,7 @@ services:
       - key: SMTP_PASS
         sync: false
       - key: SMTP_FROM_EMAIL
-        value: noreply@schoolnex.in
+        value: circlecreation001@gmail.com
       - key: SMTP_FROM_NAME
         value: SchoolNex
       - key: APP_URL

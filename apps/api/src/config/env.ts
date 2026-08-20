@@ -57,7 +57,7 @@ export const env = {
   smtpUser: process.env.SMTP_USER || '',
   smtpPass: process.env.SMTP_PASS || '',
   smtpFromName: process.env.SMTP_FROM_NAME || 'SchoolNex',
-  smtpFromEmail: process.env.SMTP_FROM_EMAIL || 'noreply@schoolnex.in',
+  smtpFromEmail: process.env.SMTP_FROM_EMAIL || 'circlecreation001@gmail.com',
 
   // Logging
   logLevel: process.env.LOG_LEVEL || (isProduction ? 'info' : 'debug'),

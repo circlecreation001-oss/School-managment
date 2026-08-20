@@ -232,19 +232,14 @@ export class AuthService {
 
     // Generate email verification token
     const verificationToken = crypto.randomBytes(32).toString('hex');
-    // Send OTP for email verification (fire-and-forget for speed)
-    (async () => {
-      try {
-        const { otpService } = await import('./otp.service.js');
-        const otp = await otpService.generateOtp(input.email, 'signup');
-        // Don't await email — fire and forget
-        otpService.sendOtpEmail(input.email, otp, 'signup').catch((err) => {
-          logger.warn({ err }, 'Register OTP email failed (background)');
-        });
-      } catch (err) {
-        logger.warn({ err }, 'Register OTP generation failed');
-      }
-    })();
+    // Send OTP for email verification
+    try {
+      const { otpService } = await import('./otp.service.js');
+      const otp = await otpService.generateOtp(input.email, 'signup');
+      await otpService.sendOtpEmail(input.email, otp, 'signup');
+    } catch (err) {
+      logger.error({ err }, 'Register OTP email failed (user can resend)');
+    }
 
     return {
       userId: user.id,
@@ -343,17 +338,14 @@ export class AuthService {
     const user = await authRepository.findUserByEmail(tenant.id, input.email);
     if (!user) return { message: successMsg };
 
-    // Generate and send OTP (email is fire-and-forget for speed)
+    // Generate and send OTP
     try {
       const { otpService } = await import('./otp.service.js');
       const otp = await otpService.generateOtp(input.email, 'reset');
-      // Fire-and-forget email delivery
-      otpService.sendOtpEmail(input.email, otp, 'reset').catch((err) => {
-        logger.warn({ err }, 'Forgot password OTP email failed (background)');
-      });
+      await otpService.sendOtpEmail(input.email, otp, 'reset');
     } catch (otpErr: any) {
       if (otpErr?.statusCode === 429) throw otpErr;
-      logger.warn({ err: otpErr }, 'Forgot password OTP generation failed');
+      logger.error({ err: otpErr }, 'Forgot password OTP email failed');
     }
 
     // Audit log (fire-and-forget)
@@ -670,22 +662,14 @@ export class AuthService {
     }, { timeout: 30000 });
 
     // ─── Send OTP for email verification ───
-    // OTP generation + email sending with 5s max timeout (won't block response beyond that)
-    const otpPromise = (async () => {
-      try {
-        const { otpService } = await import('./otp.service.js');
-        const otp = await otpService.generateOtp(input.email, 'signup');
-        logger.info({ email: input.email }, 'OTP generated for signup, sending email...');
-        // Await email but with 5s timeout max
-        await Promise.race([
-          otpService.sendOtpEmail(input.email, otp, 'signup'),
-          new Promise((resolve) => setTimeout(resolve, 5000)),
-        ]);
-        logger.info({ email: input.email }, 'OTP email send completed or timed out');
-      } catch (otpErr) {
-        logger.warn({ err: otpErr }, 'OTP generation/email failed during institute signup');
-      }
-    })();
+    try {
+      const { otpService } = await import('./otp.service.js');
+      const otp = await otpService.generateOtp(input.email, 'signup');
+      logger.info({ email: input.email }, 'OTP generated, sending email...');
+      await otpService.sendOtpEmail(input.email, otp, 'signup');
+    } catch (otpErr) {
+      logger.error({ err: otpErr }, 'OTP generation/email failed during signup (user can resend)');
+    }
 
     // Audit log (fire-and-forget - don't block response)
     authRepository.createAuditLog({
@@ -697,12 +681,9 @@ export class AuthService {
       ipAddress: meta.ip,
       userAgent: meta.userAgent,
       metadata: { instituteName: input.instituteName, slug, trial: true },
-    }).catch((err) => logger.warn({ err }, 'Audit log failed (non-fatal)'));
+    }).catch(() => {});
 
-    // Wait for OTP generation (fast) but NOT email delivery
-    await otpPromise;
-
-    logger.info({ tenantId: result.tenant.id, userId: result.user.id, slug }, 'Institute signup completed - OTP sent');
+    logger.info({ tenantId: result.tenant.id, userId: result.user.id, slug }, 'Institute signup completed');
 
     return {
       userId: result.user.id,

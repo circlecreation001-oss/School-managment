@@ -669,18 +669,21 @@ export class AuthService {
       return { tenant, user, adminRole };
     }, { timeout: 30000 });
 
-    // ─── Send OTP for email verification (fire-and-forget for speed) ───
-    // OTP generation is fast; email sending runs in background
+    // ─── Send OTP for email verification ───
+    // OTP generation + email sending with 5s max timeout (won't block response beyond that)
     const otpPromise = (async () => {
       try {
         const { otpService } = await import('./otp.service.js');
         const otp = await otpService.generateOtp(input.email, 'signup');
-        // Fire-and-forget: don't await email delivery
-        otpService.sendOtpEmail(input.email, otp, 'signup').catch((err) => {
-          logger.warn({ err }, 'OTP email delivery failed (background)');
-        });
+        logger.info({ email: input.email }, 'OTP generated for signup, sending email...');
+        // Await email but with 5s timeout max
+        await Promise.race([
+          otpService.sendOtpEmail(input.email, otp, 'signup'),
+          new Promise((resolve) => setTimeout(resolve, 5000)),
+        ]);
+        logger.info({ email: input.email }, 'OTP email send completed or timed out');
       } catch (otpErr) {
-        logger.warn({ err: otpErr }, 'OTP generation failed during institute signup');
+        logger.warn({ err: otpErr }, 'OTP generation/email failed during institute signup');
       }
     })();
 

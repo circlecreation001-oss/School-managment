@@ -232,31 +232,19 @@ export class AuthService {
 
     // Generate email verification token
     const verificationToken = crypto.randomBytes(32).toString('hex');
-    // Send OTP for email verification (direct SMTP, no Redis dependency for sending)
-    try {
-      const { otpService } = await import('./otp.service.js');
-      const { sendEmailDirect } = await import('../../utils/send-email.js');
-
-      // Generate OTP — if Redis is available it's stored there; if not, use DB-less approach
-      let otp: string;
+    // Send OTP for email verification (fire-and-forget for speed)
+    (async () => {
       try {
-        otp = await otpService.generateOtp(input.email, 'signup');
-      } catch {
-        // Redis unavailable — generate OTP and store temporarily in a simple hash
-        otp = String(crypto.randomInt(100000, 999999));
-        // Store in Redis with timeout fallback
-        await redisWithTimeout(() => redis.setex(`otp:signup:${input.email.toLowerCase().trim()}`, 300, JSON.stringify({ hash: crypto.createHash('sha256').update(otp).digest('hex'), attempts: 0, createdAt: Date.now() })));
+        const { otpService } = await import('./otp.service.js');
+        const otp = await otpService.generateOtp(input.email, 'signup');
+        // Don't await email — fire and forget
+        otpService.sendOtpEmail(input.email, otp, 'signup').catch((err) => {
+          logger.warn({ err }, 'Register OTP email failed (background)');
+        });
+      } catch (err) {
+        logger.warn({ err }, 'Register OTP generation failed');
       }
-
-      await sendEmailDirect({
-        to: input.email,
-        subject: 'SchoolNex - Verify Your Email',
-        text: `Your SchoolNex verification code is: ${otp}\n\nThis code expires in 5 minutes.\nDo not share this code with anyone.\n\nIf you did not request this, please ignore this email.`,
-        html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px"><h2 style="color:#2563eb">Verify Your Email</h2><p>Hi ${input.firstName},</p><p>Your verification code is:</p><div style="margin:24px 0;text-align:center"><span style="font-size:32px;font-weight:700;letter-spacing:8px;color:#1e293b;background:#f1f5f9;padding:16px 32px;border-radius:12px;display:inline-block">${otp}</span></div><p style="color:#64748b;font-size:13px">This code expires in <strong>5 minutes</strong>.</p><p style="color:#64748b;font-size:13px">Do not share this code with anyone.</p><hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0"><p style="color:#94a3b8;font-size:11px">SchoolNex - Complete School Management ERP</p></div>`,
-      });
-    } catch (emailErr) {
-      logger.warn({ err: emailErr }, 'OTP email send failed (non-fatal - user can request resend)');
-    }
+    })();
 
     return {
       userId: user.id,
@@ -355,25 +343,27 @@ export class AuthService {
     const user = await authRepository.findUserByEmail(tenant.id, input.email);
     if (!user) return { message: successMsg };
 
-    // Generate and send OTP
+    // Generate and send OTP (email is fire-and-forget for speed)
     try {
       const { otpService } = await import('./otp.service.js');
       const otp = await otpService.generateOtp(input.email, 'reset');
-      await otpService.sendOtpEmail(input.email, otp, 'reset');
+      // Fire-and-forget email delivery
+      otpService.sendOtpEmail(input.email, otp, 'reset').catch((err) => {
+        logger.warn({ err }, 'Forgot password OTP email failed (background)');
+      });
     } catch (otpErr: any) {
-      // If it's a rate limit error, pass it through
       if (otpErr?.statusCode === 429) throw otpErr;
-      logger.warn({ err: otpErr }, 'Forgot password OTP send failed');
+      logger.warn({ err: otpErr }, 'Forgot password OTP generation failed');
     }
 
-    // Audit log
-    await authRepository.createAuditLog({
+    // Audit log (fire-and-forget)
+    authRepository.createAuditLog({
       tenantId: tenant.id,
       actorUserId: user.id,
       entityType: 'user',
       entityId: user.id,
       action: 'forgot_password',
-    });
+    }).catch(() => {});
 
     return { message: successMsg };
   }
@@ -679,17 +669,23 @@ export class AuthService {
       return { tenant, user, adminRole };
     }, { timeout: 30000 });
 
-    // ─── Send OTP for email verification (no auto-login) ───
-    try {
-      const { otpService } = await import('./otp.service.js');
-      const otp = await otpService.generateOtp(input.email, 'signup');
-      await otpService.sendOtpEmail(input.email, otp, 'signup');
-    } catch (otpErr) {
-      logger.warn({ err: otpErr }, 'OTP send failed during institute signup (non-fatal)');
-    }
+    // ─── Send OTP for email verification (fire-and-forget for speed) ───
+    // OTP generation is fast; email sending runs in background
+    const otpPromise = (async () => {
+      try {
+        const { otpService } = await import('./otp.service.js');
+        const otp = await otpService.generateOtp(input.email, 'signup');
+        // Fire-and-forget: don't await email delivery
+        otpService.sendOtpEmail(input.email, otp, 'signup').catch((err) => {
+          logger.warn({ err }, 'OTP email delivery failed (background)');
+        });
+      } catch (otpErr) {
+        logger.warn({ err: otpErr }, 'OTP generation failed during institute signup');
+      }
+    })();
 
-    // Audit log
-    await authRepository.createAuditLog({
+    // Audit log (fire-and-forget - don't block response)
+    authRepository.createAuditLog({
       tenantId: result.tenant.id,
       actorUserId: result.user.id,
       entityType: 'tenant',
@@ -698,7 +694,10 @@ export class AuthService {
       ipAddress: meta.ip,
       userAgent: meta.userAgent,
       metadata: { instituteName: input.instituteName, slug, trial: true },
-    });
+    }).catch((err) => logger.warn({ err }, 'Audit log failed (non-fatal)'));
+
+    // Wait for OTP generation (fast) but NOT email delivery
+    await otpPromise;
 
     logger.info({ tenantId: result.tenant.id, userId: result.user.id, slug }, 'Institute signup completed - OTP sent');
 

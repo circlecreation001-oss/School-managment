@@ -72,94 +72,107 @@ export class StudentService {
 
     const admissionNumber = await studentRepository.getNextAdmissionNumber(tenantId);
 
-    const student = await studentRepository.create({
-      tenantId,
-      branchId,
-      academicSessionId: input.academicSessionId,
-      classId: input.classId,
-      sectionId: input.sectionId,
-      batchId: input.batchId,
-      admissionNumber,
-      firstName: input.firstName,
-      lastName: input.lastName,
-      middleName: input.middleName,
-      dob: input.dob ? new Date(input.dob) : undefined,
-      gender: input.gender as any,
-      email: input.email,
-      phone: input.phone,
-      bloodGroup: input.bloodGroup,
-      address: input.address,
-      city: input.city,
-      state: input.state,
-      pincode: input.pincode,
-      admissionDate: input.admissionDate ? new Date(input.admissionDate) : new Date(),
-      status: 'active',
-      createdBy: actorId,
-    });
-
-    // Create guardian if provided
-    if (input.guardian) {
-      const parent = await studentRepository.createParent({
-        tenantId,
-        firstName: input.guardian.firstName,
-        lastName: input.guardian.lastName,
-        relation: input.guardian.relation,
-        phone: input.guardian.phone,
-        email: input.guardian.email,
-        occupation: input.guardian.occupation,
-        address: input.guardian.address,
+    // Core admission in a transaction: Student + User Account + Role + Parent
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Create student
+      const student = await tx.student.create({
+        data: {
+          tenantId,
+          branchId,
+          academicSessionId: input.academicSessionId,
+          classId: input.classId || undefined,
+          sectionId: input.sectionId || undefined,
+          batchId: input.batchId || undefined,
+          admissionNumber,
+          firstName: input.firstName,
+          lastName: input.lastName,
+          middleName: input.middleName || undefined,
+          dob: input.dob ? new Date(input.dob) : undefined,
+          gender: input.gender as any || undefined,
+          email: input.email || undefined,
+          phone: input.phone || undefined,
+          bloodGroup: input.bloodGroup || undefined,
+          address: input.address || undefined,
+          city: input.city || undefined,
+          state: input.state || undefined,
+          pincode: input.pincode || undefined,
+          admissionDate: input.admissionDate ? new Date(input.admissionDate) : new Date(),
+          status: 'active',
+          createdBy: actorId,
+        },
       });
-      await studentRepository.linkParentToStudent(parent.id, student.id, input.guardian.relation, true);
-    }
 
-    // Auto-create user account for student login
-    let credentials: { username: string; password: string } | undefined;
-    try {
+      // 2. Create user account for student login
+      let credentials: { username: string; password: string } | undefined;
       const username = admissionNumber.toLowerCase();
       const password = crypto.randomBytes(4).toString('hex');
       const passwordHash = await bcrypt.hash(password, 12);
-      const user = await prisma.user.create({
+      const user = await tx.user.create({
         data: {
           tenantId,
           firstName: input.firstName,
           lastName: input.lastName,
-          email: input.email || `${admissionNumber.toLowerCase()}@student.schoolnex.in`,
+          email: input.email || `${username}@student.schoolnex.in`,
           username,
           passwordHash,
-          phone: input.phone,
+          phone: input.phone || undefined,
           status: 'active',
-          emailVerified: false,
+          emailVerified: true, // Admin-created accounts don't need verification
         },
       });
-      const studentRole = await prisma.role.findUnique({ where: { tenantId_code: { tenantId, code: 'student' } } });
+
+      // 3. Assign student role
+      const studentRole = await tx.role.findUnique({ where: { tenantId_code: { tenantId, code: 'student' } } });
       if (studentRole) {
-        await prisma.userRole.create({ data: { userId: user.id, roleId: studentRole.id, tenantId } });
+        await tx.userRole.create({ data: { userId: user.id, roleId: studentRole.id, tenantId } });
       }
-      await prisma.student.update({ where: { id: student.id }, data: { userId: user.id } });
+
+      // 4. Link user → student
+      await tx.student.update({ where: { id: student.id }, data: { userId: user.id } });
+
+      // 5. Create guardian if provided
+      let parentId: string | undefined;
+      if (input.guardian && input.guardian.firstName && input.guardian.lastName) {
+        const parent = await tx.parent.create({
+          data: {
+            tenantId,
+            firstName: input.guardian.firstName,
+            lastName: input.guardian.lastName,
+            relation: input.guardian.relation || undefined,
+            phone: input.guardian.phone || undefined,
+            email: input.guardian.email || undefined,
+            occupation: input.guardian.occupation || undefined,
+            address: input.guardian.address || undefined,
+          },
+        });
+        await tx.parentStudent.create({
+          data: { parentId: parent.id, studentId: student.id, relation: input.guardian.relation || 'guardian', isPrimary: true },
+        });
+        parentId = parent.id;
+      }
+
       credentials = { username, password };
-    } catch (accountErr) {
-      logger.warn({ err: accountErr, studentId: student.id }, 'Failed to create student user account (non-fatal)');
-    }
+      return { student, credentials, parentId };
+    }, { timeout: 15000 });
 
-    await this.audit(tenantId, actorId, 'student', student.id, 'admit');
-    logger.info({ tenantId, studentId: student.id, admissionNumber, actorId }, 'Student admitted');
+    await this.audit(tenantId, actorId, 'student', result.student.id, 'admit');
+    logger.info({ tenantId, studentId: result.student.id, admissionNumber, actorId }, 'Student admitted');
 
-    // Trigger admission confirmation notification
+    // Trigger admission notification (non-fatal, outside transaction)
     try {
-      const guardian = input.guardian;
-      if (guardian) {
+      if (input.guardian) {
         await NotificationTriggers.admissionConfirmation(tenantId, {
           applicantName: `${input.firstName} ${input.lastName}`,
-          email: guardian.email,
-          phone: guardian.phone,
+          email: input.guardian.email,
+          phone: input.guardian.phone,
           classApplied: input.classId,
         });
       }
     } catch (notifyErr) {
-      logger.warn({ err: notifyErr }, 'Failed to send admission confirmation notification');
+      logger.warn({ err: notifyErr }, 'Admission notification failed (non-fatal)');
     }
 
-    return { ...student, credentials };
+    return { ...result.student, credentials: result.credentials };
   }
 
   // ─── UPDATE ───

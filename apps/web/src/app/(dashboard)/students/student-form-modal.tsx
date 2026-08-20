@@ -331,19 +331,32 @@ export function StudentFormModal({ mode, student, onClose, onSuccess }: Props) {
 
         {/* Tabs */}
         <div className="flex border-b border-slate-100 px-6 shrink-0">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                activeTab === tab.id
-                  ? 'border-blue-600 text-blue-700'
-                  : 'border-transparent text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+          {tabs.map(tab => {
+            // Check if this tab has errors
+            const basicFields = ['firstName', 'lastName', 'middleName', 'dob', 'gender', 'email', 'phone', 'bloodGroup'];
+            const academicFields = ['academicSessionId', 'classId', 'sectionId', 'rollNumber'];
+            const addressFields = ['address', 'city', 'state', 'pincode'];
+            const guardianFields = ['guardianFirstName', 'guardianLastName', 'guardianRelation', 'guardianPhone', 'guardianEmail'];
+            const tabFields: Record<string, string[]> = { basic: basicFields, academic: academicFields, address: addressFields, guardian: guardianFields };
+            const hasError = Object.keys(errors).some(e => tabFields[tab.id]?.includes(e));
+
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors relative ${
+                  activeTab === tab.id
+                    ? 'border-blue-600 text-blue-700'
+                    : hasError
+                      ? 'border-red-400 text-red-600'
+                      : 'border-transparent text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                {tab.label}
+                {hasError && <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-red-500" />}
+              </button>
+            );
+          })}
         </div>
 
         {/* Form */}
@@ -504,7 +517,23 @@ export function StudentFormModal({ mode, student, onClose, onSuccess }: Props) {
             </button>
             <button
               type="button"
-              onClick={handleSubmit(onSubmit)}
+              onClick={() => {
+                handleSubmit(onSubmit)();
+                // If validation fails, switch to the tab with the first error
+                setTimeout(() => {
+                  const errs = Object.keys(errors);
+                  if (errs.length > 0) {
+                    const basicFields = ['firstName', 'lastName', 'middleName', 'dob', 'gender', 'email', 'phone', 'bloodGroup'];
+                    const academicFields = ['academicSessionId', 'classId', 'sectionId', 'rollNumber'];
+                    const addressFields = ['address', 'city', 'state', 'pincode'];
+                    const guardianFields = ['guardianFirstName', 'guardianLastName', 'guardianRelation', 'guardianPhone', 'guardianEmail'];
+                    if (errs.some(e => academicFields.includes(e))) setActiveTab('academic');
+                    else if (errs.some(e => basicFields.includes(e))) setActiveTab('basic');
+                    else if (errs.some(e => addressFields.includes(e))) setActiveTab('address');
+                    else if (errs.some(e => guardianFields.includes(e))) setActiveTab('guardian');
+                  }
+                }, 100);
+              }}
               disabled={loading}
               className="px-6 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-60"
             >

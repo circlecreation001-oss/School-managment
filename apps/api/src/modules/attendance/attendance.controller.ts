@@ -74,7 +74,18 @@ export class AttendanceController {
   async getMonthlyReport(req: Request, res: Response, next: NextFunction) {
     try {
       const branchId = (req.query.branchId as string) || req.user!.branchId || '';
-      const r = await attendanceService.getMonthlyReport(req.user!.tenantId, branchId, req.query as any);
+      const query = req.query as any;
+
+      // SECURITY: If user is a student, force studentId to their own
+      if (req.user!.roles.includes('student') && !req.user!.roles.some((r: string) => ['super_admin', 'tenant_admin', 'institution_admin', 'teacher', 'principal'].includes(r))) {
+        const { prisma } = await import('@erp/database');
+        const student = await prisma.student.findUnique({ where: { userId: req.user!.id }, select: { id: true } });
+        if (student) {
+          query.studentId = student.id; // Override any client-supplied studentId
+        }
+      }
+
+      const r = await attendanceService.getMonthlyReport(req.user!.tenantId, branchId, query);
       sendSuccess(res, r);
     } catch (e) { next(e); }
   }

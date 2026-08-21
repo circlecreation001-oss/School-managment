@@ -103,9 +103,15 @@ export class StudentService {
       });
 
       // 2. Create user account for student login
+      // Login ID: FULLNAME + ADMISSIONNUMBER (uppercase, no spaces/special chars)
+      // Password: FIRST4LETTERS + RANDOM4DIGITS
       let credentials: { username: string; password: string } | undefined;
-      const username = admissionNumber.toLowerCase();
-      const password = crypto.randomBytes(4).toString('hex');
+      const cleanName = input.firstName.replace(/[^a-zA-Z]/g, '').toUpperCase();
+      const admNumeric = admissionNumber.replace(/[^0-9]/g, '');
+      const username = `${cleanName}${admNumeric}`;
+      const first4 = cleanName.slice(0, 4).padEnd(4, 'X'); // Pad if name < 4 chars
+      const random4 = String(Math.floor(1000 + Math.random() * 9000)); // 4-digit random
+      const password = `${first4}${random4}`;
       const passwordHash = await bcrypt.hash(password, 12);
       const user = await tx.user.create({
         data: {

@@ -47,7 +47,16 @@ export class ExamController {
     try { sendSuccess(res, await examService.getResults(req.user!.tenantId, req.query as any)); } catch (e) { next(e); }
   }
   async getStudentResults(req: Request, res: Response, next: NextFunction) {
-    try { sendSuccess(res, await examService.getStudentResults(req.user!.tenantId, req.params.studentId!, req.query.sessionId as string)); } catch (e) { next(e); }
+    try {
+      let studentId = req.params.studentId!;
+      // SECURITY: If user is a student, force to their own results
+      if (req.user!.roles.includes('student') && !req.user!.roles.some((r: string) => ['super_admin', 'tenant_admin', 'institution_admin', 'teacher', 'principal'].includes(r))) {
+        const { prisma } = await import('@erp/database');
+        const student = await prisma.student.findUnique({ where: { userId: req.user!.id }, select: { id: true } });
+        if (student) studentId = student.id;
+      }
+      sendSuccess(res, await examService.getStudentResults(req.user!.tenantId, studentId, req.query.sessionId as string));
+    } catch (e) { next(e); }
   }
 
   // Grades

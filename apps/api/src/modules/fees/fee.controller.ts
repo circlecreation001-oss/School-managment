@@ -76,7 +76,16 @@ export class FeeController {
     try { sendSuccess(res, await feeService.getRevenueByMonth(req.user!.tenantId, Number(req.query.year) || new Date().getFullYear())); } catch (e) { next(e); }
   }
   async getStudentLedger(req: Request, res: Response, next: NextFunction) {
-    try { sendSuccess(res, await feeService.getStudentLedger(req.user!.tenantId, req.params.studentId!)); } catch (e) { next(e); }
+    try {
+      let studentId = req.params.studentId!;
+      // SECURITY: If user is a student, force to their own ledger
+      if (req.user!.roles.includes('student') && !req.user!.roles.some((r: string) => ['super_admin', 'tenant_admin', 'institution_admin', 'accountant'].includes(r))) {
+        const { prisma } = await import('@erp/database');
+        const student = await prisma.student.findUnique({ where: { userId: req.user!.id }, select: { id: true } });
+        if (student) studentId = student.id;
+      }
+      sendSuccess(res, await feeService.getStudentLedger(req.user!.tenantId, studentId));
+    } catch (e) { next(e); }
   }
 
   // Fee Receipt PDF

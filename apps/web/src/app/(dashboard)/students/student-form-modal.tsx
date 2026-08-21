@@ -151,7 +151,7 @@ export function StudentFormModal({ mode, student, onClose, onSuccess }: Props) {
 
   const schema = mode === 'create' ? createSchema : editSchema;
 
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<any>({
+  const { register, handleSubmit, watch, setValue, trigger, formState: { errors } } = useForm<any>({
     resolver: zodResolver(schema),
     defaultValues: mode === 'edit' && student ? {
       firstName: student.firstName || '',
@@ -506,6 +506,7 @@ export function StudentFormModal({ mode, student, onClose, onSuccess }: Props) {
             {tabs.map((tab, i) => (
               <button
                 key={tab.id}
+                type="button"
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`h-2 w-2 rounded-full transition-colors ${activeTab === tab.id ? 'bg-blue-600' : 'bg-slate-200'}`}
               />
@@ -517,22 +518,30 @@ export function StudentFormModal({ mode, student, onClose, onSuccess }: Props) {
             </button>
             <button
               type="button"
-              onClick={() => {
-                handleSubmit(onSubmit)();
-                // If validation fails, switch to the tab with the first error
-                setTimeout(() => {
-                  const errs = Object.keys(errors);
-                  if (errs.length > 0) {
-                    const basicFields = ['firstName', 'lastName', 'middleName', 'dob', 'gender', 'email', 'phone', 'bloodGroup'];
-                    const academicFields = ['academicSessionId', 'classId', 'sectionId', 'rollNumber'];
-                    const addressFields = ['address', 'city', 'state', 'pincode'];
-                    const guardianFields = ['guardianFirstName', 'guardianLastName', 'guardianRelation', 'guardianPhone', 'guardianEmail'];
-                    if (errs.some(e => academicFields.includes(e))) setActiveTab('academic');
-                    else if (errs.some(e => basicFields.includes(e))) setActiveTab('basic');
-                    else if (errs.some(e => addressFields.includes(e))) setActiveTab('address');
-                    else if (errs.some(e => guardianFields.includes(e))) setActiveTab('guardian');
+              onClick={async () => {
+                // Trigger validation first to get errors
+                const valid = await trigger();
+                if (!valid) {
+                  // Find which tab has errors and switch to it
+                  const currentErrors = Object.keys(errors);
+                  // Re-trigger to ensure errors are fresh
+                  await trigger();
+                  const freshErrors = Object.keys(errors);
+                  const academicFields = ['academicSessionId', 'classId'];
+                  const basicFields = ['firstName', 'lastName'];
+                  if (freshErrors.some(e => academicFields.includes(e))) {
+                    setActiveTab('academic');
+                    toast.error('Please select Academic Session and Class');
+                  } else if (freshErrors.some(e => basicFields.includes(e))) {
+                    setActiveTab('basic');
+                    toast.error('Please fill required personal information');
+                  } else {
+                    toast.error('Please fill all required fields');
                   }
-                }, 100);
+                  return;
+                }
+                // Validation passed — submit
+                handleSubmit(onSubmit)();
               }}
               disabled={loading}
               className="px-6 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-60"

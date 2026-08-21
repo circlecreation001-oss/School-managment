@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/providers/auth-provider';
 import { usePermissions } from '@/hooks/use-permissions';
 import { apiClient } from '@/lib/api-client';
+import { ROLE_PORTALS, getPortalForRole } from '@/config/role-navigation';
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import {
   LayoutDashboard, GraduationCap, Users, UserCheck,
@@ -121,6 +122,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (!isAuthenticated) return null;
 
   const userRoles = user?.roles || [];
+
+  // Determine which navigation to show based on user role
+  const isAdminRole = userRoles.some(r => ['super_admin', 'tenant_admin', 'institution_admin', 'principal', 'vice_principal'].includes(r));
+  const portalConfig = !isAdminRole ? getPortalForRole(userRoles) : null;
+
+  // Icon mapping for role-specific nav items
+  const iconMap: Record<string, any> = {
+    LayoutDashboard, GraduationCap, Users, UserCheck, BookOpen, School, CalendarCheck, ClipboardList,
+    FileText, IndianRupee, Library, Bell, BarChart3, Shield, Settings,
+    FolderOpen: ClipboardList, UserPlus: UserCheck, Briefcase: Shield,
+  };
+
   const isVisible = (item: NavItem): boolean => {
     if (item.permissions) return hasAnyPermission(item.permissions);
     return true;
@@ -186,9 +199,43 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         )}
       </div>
 
-      {/* Nav — fixed scroll issue with proper overflow */}
+      {/* Nav — role-based navigation */}
       <nav className="flex-1 min-h-0 overflow-y-auto overscroll-contain py-4 px-2.5 space-y-5">
-        {sidebarNav.map((group) => {
+        {portalConfig ? (
+          /* Role-specific navigation (student, teacher, parent, etc.) */
+          <div>
+            {!collapsed && (
+              <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
+                {portalConfig.label}
+              </p>
+            )}
+            <div className="space-y-0.5">
+              {portalConfig.navigation.map((item) => {
+                const Icon = iconMap[item.icon] || LayoutDashboard;
+                const active = isActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-200 ${
+                      active
+                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+                        : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                    } ${collapsed ? 'justify-center px-2.5' : ''}`}
+                    title={collapsed ? item.label : undefined}
+                  >
+                    <Icon className={`h-[18px] w-[18px] shrink-0 transition-colors duration-200 ${
+                      active ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'
+                    }`} />
+                    {!collapsed && <span className="truncate">{item.label}</span>}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          /* Admin navigation (tenant_admin, super_admin, etc.) */
+          sidebarNav.map((group) => {
           const visibleItems = group.items.filter(isVisible);
           if (visibleItems.length === 0) return null;
           return (
@@ -239,7 +286,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
             </div>
           );
-        })}
+        })
+        )}
       </nav>
 
       {/* User */}

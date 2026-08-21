@@ -7,7 +7,9 @@ export class StudentRepository {
     sectionId?: string; status?: string; gender?: string;
     sortBy?: string; sortOrder?: 'asc' | 'desc';
   }) {
-    const where: Prisma.StudentWhereInput = { tenantId, branchId, deletedAt: null };
+    const where: Prisma.StudentWhereInput = { tenantId, deletedAt: null };
+    // Only filter by branchId if provided (tenant admins see all branches)
+    if (branchId) where.branchId = branchId;
     if (params.classId) where.classId = params.classId;
     if (params.sectionId) where.sectionId = params.sectionId;
     if (params.status) where.status = params.status as any;

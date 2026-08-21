@@ -11,16 +11,12 @@ const server = http.createServer(app);
 initializeSocket(server);
 
 async function bootstrap(): Promise<void> {
-  // Connect to Redis (non-fatal in development)
+  // Connect to Redis (non-fatal — app works without it, just without caching/rate-limiting)
   try {
     await connectRedis();
     logger.info('Redis connected');
   } catch (err: any) {
-    if (env.nodeEnv === 'production') {
-      logger.fatal({ err }, 'Redis connection required in production');
-      process.exit(1);
-    }
-    logger.warn({ err: err.message }, 'Redis unavailable — running without cache/queues');
+    logger.warn({ err: err.message }, 'Redis unavailable — running without cache/queues/OTP storage');
   }
 
   try {

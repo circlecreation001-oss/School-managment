@@ -32,13 +32,14 @@ export function isRedisReady(): boolean {
 
 export async function connectRedis(): Promise<void> {
   try {
-    await redis.connect();
+    // Timeout Redis connection attempt to 10 seconds max
+    await Promise.race([
+      redis.connect(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Redis connection timeout (10s)')), 10000)),
+    ]);
   } catch (err: any) {
-    logger.error({ err: err.message }, 'Failed to connect to Redis');
-    if (env.nodeEnv === 'production') {
-      throw err;
-    }
-    logger.warn('Redis unavailable — running in degraded mode (no caching, no queues)');
+    logger.warn({ err: err.message }, 'Redis connection failed — running in degraded mode');
+    // Don't throw — let the server start without Redis
   }
 }
 
